@@ -46,6 +46,8 @@ button.pass{background:var(--blue)}
 .note{font-size:14px;color:var(--muted);margin:0}
 .warn{font-size:14px;color:var(--gold);margin:0}
 .center{text-align:center}
+.err{font-size:14px;font-weight:600;color:var(--red);margin:0}
+#nickIn[aria-invalid="true"]{border-color:var(--red);box-shadow:0 0 0 2px color-mix(in srgb,var(--red) 40%,transparent)}
 #codeIn{text-transform:uppercase;letter-spacing:.3em;font-weight:800;text-align:center}
 .net{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
 .net i{width:9px;height:9px;border-radius:50%;background:var(--red);display:block}
@@ -102,6 +104,17 @@ button.skip{background:var(--line);color:var(--fg)}
 .final{font-family:var(--display);font-weight:900;font-size:110px;line-height:.9;color:var(--gold);text-align:center;font-variant-numeric:tabular-nums}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .top .ghost{padding:8px 12px;font-size:14px}
+.top .row>*{flex:none}
+.share{flex:none;display:inline-flex;align-items:center;gap:6px}
+.share::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3l5 5h-3v7h-4V8H7z M4 14h3v4h10v-4h3v7H4z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3l5 5h-3v7h-4V8H7z M4 14h3v4h10v-4h3v7H4z'/%3E%3C/svg%3E") center/contain no-repeat}
+dialog#shareDlg{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--fg);padding:20px;width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto}
+dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
+.dlg{display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.qr{background:#fff;border-radius:12px;padding:14px;align-self:center;width:min(260px,100%);aspect-ratio:1;max-width:100%;display:grid;place-items:center}
+.qr svg,.qr img{width:100%;height:100%;display:block}
+.qr p{color:#15123d;font-size:14px;text-align:center;margin:0}
+.url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;overflow-wrap:anywhere;user-select:all;-webkit-user-select:all}
+.ok-msg{color:var(--green);font-weight:700;font-size:14px;margin:0;text-align:center;min-height:1.4em}
 @media (prefers-reduced-motion:reduce){.banner{animation:none}button{transition:none}}
 </style>
 </head>
@@ -110,11 +123,12 @@ button.skip{background:var(--line);color:var(--fg)}
 
   <!-- HOME -->
   <section id="home" class="screen">
-    <h1>Intesa <span>Vincente</span></h1>
+    <div class="top" style="align-items:flex-start"><h1>Intesa <span>Vincente</span></h1><button class="ghost share" data-share>Condividi</button></div>
     <p class="lede">Due suggeritori, una parola a testa. Il terzo indovina prima che scada il tempo. Ogni giocatore apre questa pagina sul proprio telefono.</p>
     <div class="box">
-      <label class="label" for="nickIn">Il tuo nome</label>
-      <input id="nickIn" maxlength="18" placeholder="Es. Pietro" autocomplete="off">
+      <label class="label" for="nickIn">Il tuo nome · obbligatorio</label>
+      <input id="nickIn" maxlength="18" placeholder="Es. Pietro" autocomplete="off" required aria-describedby="nickErr">
+      <p class="err" id="nickErr" hidden>Scrivi il tuo nome per giocare.</p>
     </div>
     <div class="box">
       <span class="label">Nuova partita</span>
@@ -132,7 +146,7 @@ button.skip{background:var(--line);color:var(--fg)}
 
   <!-- SALA -->
   <section id="lobby" class="screen" hidden>
-    <div class="top"><h2>Sala d'attesa</h2><button class="ghost" data-exit>Esci</button></div>
+    <div class="top"><h2>Sala d'attesa</h2><div class="row" style="flex:none;gap:8px"><button class="ghost share" data-share>Condividi</button><button class="ghost" data-exit>Esci</button></div></div>
     <div class="box" id="codeBox">
       <span class="label center">Codice partita</span>
       <div class="code" id="codeShow">····</div>
@@ -187,10 +201,10 @@ button.skip{background:var(--line);color:var(--fg)}
       <p class="hint" id="hint"></p>
       <div class="pad">
         <button id="bBuzz" class="buzz wide">Prenota</button>
-        <button id="bOk" class="ok big">Giusta +1</button>
-        <button id="bNo" class="no big">Sbagliata −1</button>
+        <button id="bOk" class="ok big">Giusta</button>
+        <button id="bNo" class="no big">Sbagliata</button>
         <button id="bPass" class="pass big wide">Passo</button>
-        <button id="bSkip" class="skip big wide" hidden>Non rispondo 0</button>
+        <button id="bSkip" class="skip big wide" hidden>Non rispondo</button>
         <button id="bResume" class="ghost wide" hidden>Annulla prenotazione</button>
       </div>
     </div>
@@ -212,6 +226,19 @@ button.skip{background:var(--line);color:var(--fg)}
   </section>
 </div>
 
+<dialog id="shareDlg" aria-labelledby="shareTitle">
+  <div class="dlg">
+    <div class="top"><h2 id="shareTitle">Invita a giocare</h2><button class="ghost" id="shareClose">Chiudi</button></div>
+    <p class="note">Fai inquadrare il QR code, oppure copia il link e mandalo in un messaggio.</p>
+    <div class="qr" id="qrBox"><p>Caricamento del QR code…</p></div>
+    <div class="url" id="shareUrl"></div>
+    <button id="btnCopy">Copia link</button>
+    <button id="btnNativeShare" class="ghost" hidden>Invia con…</button>
+    <p class="ok-msg" id="copyMsg" role="status"></p>
+  </div>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
 (()=>{
@@ -219,6 +246,7 @@ button.skip{background:var(--line);color:var(--fg)}
 // Server pubblico gratuito che fa da "ponte" tra i telefoni. Nessun account richiesto.
 const BROKER="wss://broker.hivemq.com:8884/mqtt";
 const NS="intesa-vincente-yeezik/v1/";
+const SHARE_URL="https://yeezikdev.github.io/intesa-vincente/";
 
 const WORDS=("cane gatto mare sole luna stella pane vino pizza pasta caffè scuola libro penna treno aereo nave macchina bicicletta strada ponte fiume montagna neve pioggia vento nuvola fuoco acqua terra albero fiore foglia giardino casa porta finestra chiave letto sedia tavolo specchio cucina forno frigorifero bagno doccia sapone asciugamano telefono computer televisione radio musica chitarra pianoforte tamburo canzone ballo festa regalo torta candela compleanno natale vacanza spiaggia ombrellone valigia passaporto biglietto stazione aeroporto albergo museo teatro cinema film attore regista palco applauso calcio pallone portiere arbitro gol stadio squadra campione medaglia corsa nuoto palestra tennis sciatore ghiaccio inverno estate autunno primavera mattina sera notte sogno sveglia orologio tempo calendario domenica lunedì mese anno storia guerra pace re regina castello principe drago cavaliere spada scudo tesoro mappa isola pirata bussola faro pescatore rete pesce balena squalo delfino polpo granchio conchiglia sabbia onda vela barca porto marinaio capitano pilota astronauta razzo pianeta universo telescopio scienza medico ospedale infermiere farmacia febbre dente sorriso lacrima risata bacio abbraccio amore cuore amico nemico famiglia mamma papà nonno bambino maestro lavagna gesso compito esame voto pagella zaino matita gomma righello forbici colla carta busta lettera francobollo postino giornale notizia segreto bugia verità giudice avvocato legge polizia ladro prigione lucchetto banca soldi moneta portafoglio prezzo negozio mercato frutta mela banana arancia limone fragola ciliegia uva pomodoro patata cipolla aglio insalata formaggio latte burro uovo gallina mucca maiale cavallo pecora asino coniglio topo elefante leone tigre giraffa scimmia orso lupo volpe aquila gufo pappagallo farfalla ape formica ragno serpente coccodrillo tartaruga rana zanzara cappello sciarpa guanti scarpe stivali giacca ombrello occhiali anello collana orecchino profumo trucco parrucchiere barba baffi capelli occhio naso bocca orecchio mano piede ginocchio spalla schiena pancia fame sete sonno freddo caldo paura coraggio fortuna magia strega fantasma vampiro mostro circo pagliaccio giocoliere mago dado scacchi puzzle gioco premio vittoria sconfitta gara traguardo ruota motore benzina semaforo incrocio parcheggio multa vigile autostrada galleria vulcano terremoto deserto cammello oasi giungla foresta lago cascata grotta tempesta fulmine tuono arcobaleno nebbia gelato cioccolato caramella biscotto zucchero sale pepe olio aceto padella pentola forchetta coltello cucchiaio piatto bicchiere bottiglia tappo cameriere cuoco ristorante menu conto mancia discoteca microfono cuffie vinile concerto").split(/\s+/).filter((w,i,a)=>w&&a.indexOf(w)===i);
 const ROLES={s1:["Suggeritore 1","Vede la parola"],s2:["Suggeritore 2","Vede la parola"],g:["Indovino","Non vede la parola"],v:["Spettatore","Vede tutto, non gioca"]};
@@ -248,10 +276,14 @@ function setNet(on){online=on;document.querySelectorAll("[data-net]").forEach(e=
 /* ---------- home ---------- */
 $("#nickIn").value=store.get("iv-nick")||"";
 const best=+store.get("iv-best")||0;if(best)$("#bestNote").textContent="Il tuo record su questo dispositivo: "+best+" parole.";
-function getNick(){nick=($("#nickIn").value.trim()||"Giocatore").slice(0,18);store.set("iv-nick",nick);return nick}
+function getNick(){const v=$("#nickIn").value.trim().slice(0,18);const bad=!v;
+  $("#nickErr").hidden=!bad;$("#nickIn").setAttribute("aria-invalid",bad?"true":"false");
+  if(bad){$("#nickIn").focus();$("#nickIn").scrollIntoView({block:"center",behavior:"smooth"});return null}
+  nick=v;store.set("iv-nick",nick);return nick}
+$("#nickIn").addEventListener("input",()=>{if($("#nickIn").value.trim()){$("#nickErr").hidden=true;$("#nickIn").setAttribute("aria-invalid","false")}});
 function busy(b){$("#btnCreate").disabled=b;$("#btnJoin").disabled=b}
 
-$("#btnCreate").onclick=async()=>{getNick();audio();
+$("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
   const L="ABCDEFGHJKLMNPQRSTUVWXYZ";code=Array.from({length:4},()=>L[Math.floor(Math.random()*L.length)]).join("");
   isHost=true;local=false;myRole=null;
   wantV=false;requested=null;G={ph:"lobby",code,dur:75,gap:5,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};
@@ -259,7 +291,7 @@ $("#btnCreate").onclick=async()=>{getNick();audio();
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");push();enterLobby()};
 
-$("#btnJoin").onclick=async()=>{getNick();audio();
+$("#btnJoin").onclick=async()=>{if(!getNick())return;audio();
   code=$("#codeIn").value.trim().toUpperCase();
   if(!/^[A-Z]{4}$/.test(code)){note("Il codice è di 4 lettere.");return}
   isHost=false;local=false;myRole=null;wantV=false;requested=null;hostSeen=false;G={ph:"lobby",code,dur:75,roles:{s1:null,s2:null,g:null}};
@@ -269,7 +301,7 @@ $("#btnJoin").onclick=async()=>{getNick();audio();
   setTimeout(()=>{if(cli&&!hostSeen)$("#waitNote").textContent="Nessuna partita con il codice "+code+" per ora. Controlla il codice o aspetta che chi l'ha creata si colleghi."},5000)};
 $("#codeIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btnJoin").click()});
 
-$("#btnLocal").onclick=()=>{getNick();audio();local=true;isHost=true;myRole="all";code="";
+$("#btnLocal").onclick=()=>{if(!getNick())return;audio();local=true;isHost=true;myRole="all";code="";
   G={ph:"lobby",code:"",dur:75,gap:5,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};enterLobby()};
 
 document.querySelectorAll("[data-exit]").forEach(b=>b.onclick=exitGame);
@@ -458,6 +490,28 @@ $("#bPass").onclick=()=>send("pass");
 $("#bResume").onclick=()=>send("resume");
 $("#bSkip").onclick=()=>send("skip");
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&G&&G.ph!=="lobby")keepAwake()});
+
+/* ---------- condividi ---------- */
+const dlg=$("#shareDlg");
+$("#shareUrl").textContent=SHARE_URL;
+let qrDone=false;
+function drawQR(){if(qrDone)return;const box=$("#qrBox");
+  if(typeof qrcode!=="function"){box.innerHTML="";const p=document.createElement("p");p.textContent="QR code non disponibile. Usa il link qui sotto.";box.append(p);return}
+  try{const q=qrcode(0,"M");q.addData(SHARE_URL);q.make();box.innerHTML=q.createSvgTag({cellSize:8,margin:2,scalable:true});qrDone=true}
+  catch(e){box.textContent="QR code non disponibile. Usa il link qui sotto."}}
+function openShare(){drawQR();$("#copyMsg").textContent="";$("#btnNativeShare").hidden=!navigator.share;
+  if(dlg.showModal){try{dlg.showModal()}catch(e){dlg.setAttribute("open","")}}else dlg.setAttribute("open","")}
+function closeShare(){if(dlg.close)dlg.close();else dlg.removeAttribute("open")}
+document.querySelectorAll("[data-share]").forEach(b=>b.onclick=openShare);
+$("#shareClose").onclick=closeShare;
+dlg.addEventListener("click",e=>{if(e.target===dlg)closeShare()});
+function selectUrl(){const r=document.createRange();r.selectNodeContents($("#shareUrl"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r)}
+$("#btnCopy").onclick=()=>{
+  const done=()=>{$("#copyMsg").textContent="Link copiato. Ora incollalo nel messaggio.";$("#btnCopy").textContent="Copiato!";setTimeout(()=>$("#btnCopy").textContent="Copia link",2000)};
+  const fallback=()=>{selectUrl();let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+    if(ok)done();else $("#copyMsg").textContent="Ho selezionato il link: tienilo premuto e scegli Copia."};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(SHARE_URL).then(done,fallback);else fallback()};
+$("#btnNativeShare").onclick=()=>{navigator.share({title:"Intesa Vincente",text:"Giochiamo a Intesa Vincente!",url:SHARE_URL}).catch(()=>{})};
 })();
 </script>
 </body>
