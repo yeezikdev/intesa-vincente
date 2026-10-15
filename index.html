@@ -361,11 +361,11 @@ function assignRole(id,r,who){if(!isHost||!G||G.ph!=="lobby")return;G.roles=G.ro
   const cur=G.roles[r];if(cur&&cur.id!==id){push();return}
   freeRoles(id);G.roles[r]={id,nick:who};push()}
 function requestRole(k){if(!G||G.ph!=="lobby")return;
-  if(k==="v"){wantV=true}else wantV=false;
+  wantV=k==="v";
   if(isHost){assignRole(cid,k,nick);syncMyRole();renderLobby();return}
-  if(!cli||!online)return;requested=k;clearTimeout(reqTimer);reqTimer=setTimeout(()=>{requested=null;renderLobby()},5000);
+  if(!cli||!online)return;requested=k==="none"?null:k;clearTimeout(reqTimer);reqTimer=setTimeout(()=>{requested=null;renderLobby()},5000);
   actN++;cli.publish(base+"act",JSON.stringify({t:"role",r:k,c:cid,nick,n:actN}),{qos:1});
-  if(k==="v"){syncMyRole()}renderLobby()}
+  if(k==="v"||k==="none"){syncMyRole()}renderLobby()}
 function onPeers(){
   if(!isHost){const h=peerList().some(p=>p.host&&!p.me);if(h)hostSeen=true;$("#hostGone").hidden=h||!hostSeen}
   renderLobby()}
@@ -426,8 +426,8 @@ function renderLobby(){
     b.disabled=!!takenBy||!online&&!isHost;
     const s=document.createElement("span");s.textContent=ROLES[k][0];
     const sm=document.createElement("small");
-    sm.textContent=mine?"Il tuo ruolo":takenBy?"Preso da "+(typeof takenBy.nick==="string"?takenBy.nick:"un giocatore"):waiting?"Richiesta inviata…":ROLES[k][1];
-    b.append(s,sm);b.onclick=()=>{if(!mine)requestRole(k)};rb.append(b)}
+    sm.textContent=mine?"Il tuo ruolo · tocca per lasciarlo":takenBy?"Preso da "+(typeof takenBy.nick==="string"?takenBy.nick:"un giocatore"):waiting?"Richiesta inviata…":ROLES[k][1];
+    b.append(s,sm);b.onclick=()=>requestRole(mine?"none":k);rb.append(b)}
   const ul=$("#peers");ul.textContent="";
   for(const p of list){const li=document.createElement("li");const b=document.createElement("b");
     b.textContent=p.nick+(p.me?" (tu)":"")+(p.host?" · ha creato la partita":"");
