@@ -96,6 +96,8 @@ button.pass{background:var(--blue)}
 .hist li{padding:4px 10px;border-radius:99px;font-size:14px;font-weight:600;background:var(--bg)}
 .hist li.ok{background:color-mix(in srgb,var(--green) 25%,var(--bg));color:var(--green)}
 .hist li.no{background:color-mix(in srgb,var(--red) 22%,var(--bg));color:var(--red)}
+button.skip{background:var(--line);color:var(--fg)}
+.hist li.skip{background:var(--bg);color:var(--muted);text-decoration:line-through}
 .hist li.pass{background:color-mix(in srgb,var(--blue) 20%,var(--bg));color:var(--blue)}
 .final{font-family:var(--display);font-weight:900;font-size:110px;line-height:.9;color:var(--gold);text-align:center;font-variant-numeric:tabular-nums}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -185,16 +187,17 @@ button.pass{background:var(--blue)}
       <p class="hint" id="hint"></p>
       <div class="pad">
         <button id="bBuzz" class="buzz wide">Prenota</button>
-        <button id="bOk" class="ok big">Giusta</button>
-        <button id="bNo" class="no big">Sbagliata</button>
+        <button id="bOk" class="ok big">Giusta +1</button>
+        <button id="bNo" class="no big">Sbagliata −1</button>
         <button id="bPass" class="pass big wide">Passo</button>
+        <button id="bSkip" class="skip big wide" hidden>Non rispondo 0</button>
         <button id="bResume" class="ghost wide" hidden>Annulla prenotazione</button>
       </div>
     </div>
 
     <div id="endArea" class="screen" hidden>
       <div class="box" style="align-items:center">
-        <span class="label">Tempo scaduto · parole indovinate</span>
+        <span class="label">Tempo scaduto · punteggio</span>
         <div class="final" id="finalScore">0</div>
         <p class="note" id="finalNote"></p>
       </div>
@@ -343,16 +346,21 @@ function apply(t,wi){
   if(!G||wi!==G.wi||(G.ph!=="play"&&G.ph!=="buzz"))return;
   if(G.run)G.left=Math.max(0,deadline-Date.now());
   if(t==="buzz"){if(G.ph!=="play")return;G.run=false;G.ph="buzz"}
-  else if(t==="ok"||t==="no"){if(G.ph!=="buzz")return;if(t==="ok")G.score++;record(t);nextWord();goOn()}
-  else if(t==="pass"){if(G.pass>=G.maxPass)return;G.pass++;record("pass");nextWord();goOn()}
-  else if(t==="resume"){if(G.ph!=="buzz")return;resume()}
+  else if(t==="ok"||t==="no"||t==="skip"){if(G.ph!=="buzz")return;if(t==="skip"&&!G.final)return;
+    if(t==="ok")G.score++;else if(t==="no")G.score=Math.max(0,G.score-1);record(t);
+    if(G.final||G.left<=0){finish();return}
+    nextWord();goOn()}
+  else if(t==="pass"){if(G.final||G.pass>=G.maxPass)return;G.pass++;record("pass");if(G.left<=0){finish();return}nextWord();goOn()}
+  else if(t==="resume"){if(G.ph!=="buzz"||G.final)return;resume()}
   else return;
   push()}
 function start(){
   if(!isHost)return;const dur=+$("#durSel").value||75,gap=+$("#gapSel").value||0;
-  deck=shuffle(WORDS);G={ph:"play",code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
+  deck=shuffle(WORDS);G={ph:"play",final:false,code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
   nextWord();if(gap>0)startGap();else resume();keepAwake();push()}
-function finish(){G.run=false;G.left=0;G.ph="end";
+/* tempo scaduto: l'ultima parola si prenota da sola */
+function timeUp(){G.run=false;G.left=0;G.ph="buzz";G.final=true;push()}
+function finish(){G.run=false;G.left=0;G.ph="end";G.final=false;
   const b=+store.get("iv-best")||0;if(G.score>b)store.set("iv-best",G.score);push()}
 $("#btnStart").onclick=()=>{audio();start()};
 $("#durSel").onchange=$("#gapSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||75;G.gap=+$("#gapSel").value||0;push()}};
@@ -410,20 +418,22 @@ function renderGame(){
   const end=G.ph==="end";$("#playArea").hidden=end;$("#endArea").hidden=!end;
   if(end){
     $("#finalScore").textContent=G.score||0;
-    const n=(G.hist||[]).filter(h=>h.r==="pass").length;$("#finalNote").textContent=n===1?"1 passo usato":n?n+" passo usati":"";
-    const ul=$("#hist");ul.textContent="";for(const h of (G.hist||[])){const li=document.createElement("li");li.className=["ok","no","pass"].includes(h.r)?h.r:"";li.textContent=String(h.w);ul.append(li)}
+    const H=G.hist||[],c=r=>H.filter(h=>h.r===r).length;$("#finalNote").textContent=c("ok")+" giuste · "+c("no")+" sbagliate · "+c("pass")+" passo"+(c("skip")?" · ultima senza risposta":"");
+    const ul=$("#hist");ul.textContent="";for(const h of (G.hist||[])){const li=document.createElement("li");li.className=["ok","no","pass","skip"].includes(h.r)?h.r:"";li.textContent=String(h.w);ul.append(li)}
     $("#endHost").hidden=!isHost;$("#endWait").hidden=isHost;renderTime();return}
   const buzz=G.ph==="buzz",gap=G.ph==="gap";
   $("#card").classList.toggle("hide",!sees&&!gap);$("#card").classList.toggle("gap",gap);$("#cardSub").hidden=!gap;
   $("#word").textContent=gap?String(Math.max(1,Math.ceil((gapDeadline-Date.now())/1000))):sees?String(G.word||""):"Ascolta i suggeritori";
   $("#buzzBanner").hidden=!buzz;
-  $("#buzzBanner").textContent=role==="g"?"Rispondi ora! I suggeritori giudicano.":"PRENOTATO! Giusta o sbagliata?";
+  const fin=buzz&&G.final;
+  $("#buzzBanner").textContent=fin?(role==="g"?"Tempo scaduto! Ultima risposta.":"Tempo scaduto! Giusta, sbagliata o non risponde?"):role==="g"?"Rispondi ora! I suggeritori giudicano.":"PRENOTATO! Giusta o sbagliata?";
+  $("#bSkip").hidden=!(fin&&judge);
   $("#bBuzz").hidden=!guess;$("#bBuzz").disabled=buzz||gap;
   $("#bOk").disabled=!buzz;$("#bNo").disabled=!buzz;
   $("#bOk").hidden=!judge;$("#bNo").hidden=!judge;
-  $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp||gap;
+  $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp||gap||fin;
   $("#bPass").textContent=ps>=mp?"Passo esauriti":"Passo ("+(mp-ps)+")";
-  $("#bResume").hidden=!(buzz&&judge);
+  $("#bResume").hidden=!(buzz&&judge)||fin;
   $("#hint").textContent=gap?"Preparatevi: il tempo è fermo, la parola compare tra poco.":role==="g"?"Premi PRENOTA quando hai la risposta: il tempo si ferma.":role==="v"?"Stai guardando la partita.":buzz?"Ha risposto? Segnate se è giusta o sbagliata.":"Una parola a testa, alternandovi. Giusta e Sbagliata si attivano quando l'indovino prenota.";
   renderTime()}
 function renderTime(){
@@ -438,7 +448,7 @@ function renderTime(){
     if($("#word").textContent!==String(gs)){$("#word").textContent=gs;sfx.tick()}
     if(isHost&&Date.now()>=gapDeadline){resume();push()}}
   if(!G.run)lastTickSec=null;
-  if(isHost&&G.run&&G.ph==="play"&&ms<=0)finish()}
+  if(isHost&&G.run&&G.ph==="play"&&ms<=0)timeUp()}
 setInterval(renderTime,100);
 
 $("#bBuzz").onclick=()=>send("buzz");
@@ -446,6 +456,7 @@ $("#bOk").onclick=()=>send("ok");
 $("#bNo").onclick=()=>send("no");
 $("#bPass").onclick=()=>send("pass");
 $("#bResume").onclick=()=>send("resume");
+$("#bSkip").onclick=()=>send("skip");
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&G&&G.ph!=="lobby")keepAwake()});
 })();
 </script>
