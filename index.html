@@ -80,6 +80,9 @@ button.pass{background:var(--blue)}
 .card{background:var(--fg);color:var(--bg);border-radius:16px;min-height:150px;display:grid;place-items:center;padding:20px;text-align:center;box-shadow:0 10px 0 var(--gold)}
 .card .w{font-family:var(--display);font-weight:900;font-size:clamp(40px,12vw,68px);line-height:1;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
 .card.hide{background:var(--panel);color:var(--muted);box-shadow:0 10px 0 var(--line)}
+.card.gap{background:var(--panel);color:var(--gold);box-shadow:0 10px 0 var(--line)}
+.card.gap .w{font-size:96px}
+.card .sub{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
 .card.hide .w{font-size:22px;font-family:var(--body);font-weight:600;text-transform:none}
 .banner{border-radius:12px;padding:12px 14px;text-align:center;font-weight:800;background:var(--red);color:#fff;font-size:18px;animation:pulse 1s infinite alternate}
 @keyframes pulse{to{filter:brightness(1.25)}}
@@ -128,16 +131,16 @@ button.pass{background:var(--blue)}
   <!-- SALA -->
   <section id="lobby" class="screen" hidden>
     <div class="top"><h2>Sala d'attesa</h2><button class="ghost" data-exit>Esci</button></div>
-    <div class="box">
+    <div class="box" id="codeBox">
       <span class="label center">Codice partita</span>
       <div class="code" id="codeShow">····</div>
       <p class="note center">Gli altri aprono questa pagina e inseriscono il codice.</p>
     </div>
-    <div class="box">
+    <div class="box" id="rolesBox">
       <span class="label">Scegli il tuo ruolo</span>
       <div class="roles" id="roles"></div>
     </div>
-    <div class="box">
+    <div class="box" id="peersBox">
       <div class="top"><span class="label">In sala</span><span class="net" data-net><i></i><span>Collegato</span></span></div>
       <ul class="peers" id="peers"></ul>
       <p class="warn" id="roleWarn" hidden></p>
@@ -150,6 +153,15 @@ button.pass{background:var(--blue)}
         <option value="90">90 secondi</option>
         <option value="120">120 secondi</option>
       </select>
+      <label class="label" for="gapSel">Pausa tra una parola e l'altra</label>
+      <select id="gapSel">
+        <option value="0">Nessuna pausa</option>
+        <option value="3">3 secondi</option>
+        <option value="5" selected>5 secondi</option>
+        <option value="7">7 secondi</option>
+        <option value="10">10 secondi</option>
+      </select>
+      <p class="note">Durante la pausa il tempo si ferma e la parola successiva resta nascosta.</p>
       <button id="btnStart" class="big">Via!</button>
     </div>
     <p class="note center" id="waitNote">In attesa che chi ha creato la partita la avvii.</p>
@@ -169,7 +181,7 @@ button.pass{background:var(--blue)}
 
     <div id="playArea" class="screen">
       <div class="banner" id="buzzBanner" hidden>PRENOTATO!</div>
-      <div class="card" id="card"><div class="w" id="word">—</div></div>
+      <div class="card" id="card"><div><div class="sub" id="cardSub" hidden>Prossima parola tra</div><div class="w" id="word">—</div></div></div>
       <p class="hint" id="hint"></p>
       <div class="pad">
         <button id="bBuzz" class="buzz wide">Prenota</button>
@@ -211,8 +223,8 @@ const $=s=>document.querySelector(s);
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 
 let cli=null,base="",cid=Math.random().toString(36).slice(2,10);
-let isHost=false,local=false,myRole=null,nick="",code="";
-let G=null,deadline=0,deck=[],peerMap={},seenAct={},actN=0,hostSeen=false,sig=null,lastTickSec=null,wake=null,pushTimer=null,online=false;
+let isHost=false,local=false,myRole=null,nick="",code="",wantV=false,requested=null,reqTimer=null;
+let G=null,deadline=0,gapDeadline=0,pending="",deck=[],peerMap={},seenAct={},actN=0,hostSeen=false,sig=null,lastTickSec=null,wake=null,pushTimer=null,online=false;
 
 /* ---------- audio ---------- */
 let ac=null;
@@ -239,7 +251,7 @@ function busy(b){$("#btnCreate").disabled=b;$("#btnJoin").disabled=b}
 $("#btnCreate").onclick=async()=>{getNick();audio();
   const L="ABCDEFGHJKLMNPQRSTUVWXYZ";code=Array.from({length:4},()=>L[Math.floor(Math.random()*L.length)]).join("");
   isHost=true;local=false;myRole=null;
-  G={ph:"lobby",code,dur:75,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};
+  wantV=false;requested=null;G={ph:"lobby",code,dur:75,gap:5,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");push();enterLobby()};
@@ -247,7 +259,7 @@ $("#btnCreate").onclick=async()=>{getNick();audio();
 $("#btnJoin").onclick=async()=>{getNick();audio();
   code=$("#codeIn").value.trim().toUpperCase();
   if(!/^[A-Z]{4}$/.test(code)){note("Il codice è di 4 lettere.");return}
-  isHost=false;local=false;myRole=null;hostSeen=false;G={ph:"lobby",code,dur:75};
+  isHost=false;local=false;myRole=null;wantV=false;requested=null;hostSeen=false;G={ph:"lobby",code,dur:75,roles:{s1:null,s2:null,g:null}};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");enterLobby();
@@ -255,7 +267,7 @@ $("#btnJoin").onclick=async()=>{getNick();audio();
 $("#codeIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btnJoin").click()});
 
 $("#btnLocal").onclick=()=>{getNick();audio();local=true;isHost=true;myRole="all";code="";
-  G={ph:"lobby",code:"",dur:75,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};start()};
+  G={ph:"lobby",code:"",dur:75,gap:5,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};enterLobby()};
 
 document.querySelectorAll("[data-exit]").forEach(b=>b.onclick=exitGame);
 function exitGame(){
@@ -282,70 +294,98 @@ function connect(){return new Promise((resolve,reject)=>{
   c.on("offline",()=>{if(c===cli)setNet(false)});
   c.on("error",()=>{if(!done){done=true;try{c.end(true)}catch(e){}cli=null;reject(new Error("errore"))}});
   setTimeout(()=>{if(!done){done=true;try{c.end(true)}catch(e){}cli=null;reject(new Error("timeout"))}},12000);
-  clearInterval(pushTimer);pushTimer=setInterval(()=>{if(isHost&&G&&G.run)push()},3000);
+  clearInterval(pushTimer);pushTimer=setInterval(()=>{if(isHost&&G&&(G.run||G.ph==="gap"))push()},3000);
 })}
-function pubMe(){if(!cli)return;cli.publish(base+"p/"+cid,JSON.stringify({nick,role:myRole,host:isHost,t:Date.now()}),{retain:true,qos:1})}
+function pubMe(){if(!cli)return;cli.publish(base+"p/"+cid,JSON.stringify({nick,role:myRole==="v"?"v":null,host:isHost,t:Date.now()}),{retain:true,qos:1})}
 function onMsg(topic,s){
   const rest=topic.slice(base.length);
-  if(rest.startsWith("p/")){const id=rest.slice(2);const p=s?parse(s):null;if(p&&typeof p==="object")peerMap[id]=p;else delete peerMap[id];onPeers();return}
+  if(rest.startsWith("p/")){const id=rest.slice(2);const p=s?parse(s):null;if(p&&typeof p==="object")peerMap[id]=p;else{delete peerMap[id];if(isHost&&G&&G.ph==="lobby"&&freeRoles(id))push()}onPeers();return}
   if(rest==="g"&&!isHost){const g=s?parse(s):null;if(g&&typeof g==="object")receive(g);return}
-  if(rest==="act"&&isHost){const a=parse(s);if(!a||typeof a.t!=="string")return;const k=a.c+":"+a.n;if(seenAct[k])return;seenAct[k]=1;apply(a.t,a.wi)}
+  if(rest==="act"&&isHost){const a=parse(s);if(!a||typeof a.t!=="string")return;const k=a.c+":"+a.n;if(seenAct[k])return;seenAct[k]=1;
+    if(a.t==="role"){if(typeof a.c==="string")assignRole(a.c,a.r,typeof a.nick==="string"?a.nick.slice(0,18):"Giocatore");return}
+    apply(a.t,a.wi)}
 }
+function holderOf(id){const R=(G&&G.roles)||{};for(const k of ["s1","s2","g"])if(R[k]&&R[k].id===id)return k;return null}
 function peerList(){const m=Object.assign({},peerMap);m[cid]={nick,role:myRole,host:isHost};
-  return Object.entries(m).map(([id,p])=>({id,me:id===cid,nick:typeof p.nick==="string"?p.nick.slice(0,18):"Giocatore",role:typeof p.role==="string"?p.role:null,host:p.host===true}))}
+  return Object.entries(m).map(([id,p])=>({id,me:id===cid,nick:typeof p.nick==="string"?p.nick.slice(0,18):"Giocatore",role:holderOf(id)||(p.role==="v"?"v":null),host:p.host===true}))}
+function syncMyRole(){const before=myRole;myRole=holderOf(cid)||(wantV?"v":null);
+  if(requested&&(requested===myRole||(requested!=="v"&&G.roles&&G.roles[requested]&&G.roles[requested].id!==cid))){requested=null;clearTimeout(reqTimer)}
+  if(before!==myRole)pubMe()}
+/* ruoli: li assegna solo chi ha creato la partita, uno per persona */
+function freeRoles(id){let ch=false;const R=G.roles||(G.roles={});for(const k of ["s1","s2","g"])if(R[k]&&R[k].id===id){R[k]=null;ch=true}return ch}
+function assignRole(id,r,who){if(!isHost||!G||G.ph!=="lobby")return;G.roles=G.roles||{s1:null,s2:null,g:null};
+  if(r==="v"||r==="none"){freeRoles(id);push();return}
+  if(!["s1","s2","g"].includes(r))return;
+  const cur=G.roles[r];if(cur&&cur.id!==id){push();return}
+  freeRoles(id);G.roles[r]={id,nick:who};push()}
+function requestRole(k){if(!G||G.ph!=="lobby")return;
+  if(k==="v"){wantV=true}else wantV=false;
+  if(isHost){assignRole(cid,k,nick);syncMyRole();renderLobby();return}
+  if(!cli||!online)return;requested=k;clearTimeout(reqTimer);reqTimer=setTimeout(()=>{requested=null;renderLobby()},5000);
+  actN++;cli.publish(base+"act",JSON.stringify({t:"role",r:k,c:cid,nick,n:actN}),{qos:1});
+  if(k==="v"){syncMyRole()}renderLobby()}
 function onPeers(){
   if(!isHost){const h=peerList().some(p=>p.host&&!p.me);if(h)hostSeen=true;$("#hostGone").hidden=h||!hostSeen}
   renderLobby()}
-function receive(g){G=g;if(G.run)deadline=Date.now()+(+G.left||0);route()}
-function push(){if(!G)return;const left=remaining();G.left=left;
+function receive(g){G=g;if(!G.roles)G.roles={s1:null,s2:null,g:null};syncMyRole();if(G.run)deadline=Date.now()+(+G.left||0);if(G.ph==="gap")gapDeadline=Date.now()+(+G.gapLeft||0);route()}
+function push(){if(!G)return;const left=remaining();G.left=left;if(G.ph==="gap")G.gapLeft=Math.max(0,gapDeadline-Date.now());
   if(cli&&!local)cli.publish(base+"g",JSON.stringify(Object.assign({},G,{left})),{retain:true,qos:1});route()}
 function send(t){if(!G)return;if(local||isHost){apply(t,G.wi);return}
   if(!cli||!online)return;actN++;cli.publish(base+"act",JSON.stringify({t,wi:G.wi,c:cid,n:actN}),{qos:1})}
 
 /* ---------- motore (solo chi ha creato la partita) ---------- */
-function nextWord(){if(!deck.length)deck=shuffle(WORDS);G.word=deck.pop();G.wi++}
+function nextWord(){if(!deck.length)deck=shuffle(WORDS);pending=deck.pop();G.wi++;G.word=""}
+function startGap(){G.ph="gap";G.run=false;G.word="";G.gapLeft=(G.gap||0)*1000;gapDeadline=Date.now()+G.gapLeft}
+function goOn(){if((G.gap||0)>0)startGap();else resume()}
 function record(r){G.hist.push({w:G.word,r});if(G.hist.length>40)G.hist.shift();G.done++}
-function resume(){G.ph="play";G.run=true;deadline=Date.now()+G.left}
+function resume(){if(pending){G.word=pending;pending=""}G.ph="play";G.run=true;deadline=Date.now()+G.left}
 function apply(t,wi){
   if(!G||wi!==G.wi||(G.ph!=="play"&&G.ph!=="buzz"))return;
   if(G.run)G.left=Math.max(0,deadline-Date.now());
   if(t==="buzz"){if(G.ph!=="play")return;G.run=false;G.ph="buzz"}
-  else if(t==="ok"||t==="no"){if(t==="ok")G.score++;record(t);nextWord();resume()}
-  else if(t==="pass"){if(G.pass>=G.maxPass)return;G.pass++;record("pass");nextWord();resume()}
+  else if(t==="ok"||t==="no"){if(G.ph!=="buzz")return;if(t==="ok")G.score++;record(t);nextWord();goOn()}
+  else if(t==="pass"){if(G.pass>=G.maxPass)return;G.pass++;record("pass");nextWord();goOn()}
   else if(t==="resume"){if(G.ph!=="buzz")return;resume()}
   else return;
   push()}
 function start(){
-  if(!isHost)return;const dur=+$("#durSel").value||75;
-  deck=shuffle(WORDS);G={ph:"play",code:G.code,dur,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
-  nextWord();deadline=Date.now()+G.left;keepAwake();push()}
+  if(!isHost)return;const dur=+$("#durSel").value||75,gap=+$("#gapSel").value||0;
+  deck=shuffle(WORDS);G={ph:"play",code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
+  nextWord();if(gap>0)startGap();else resume();keepAwake();push()}
 function finish(){G.run=false;G.left=0;G.ph="end";
   const b=+store.get("iv-best")||0;if(G.score>b)store.set("iv-best",G.score);push()}
 $("#btnStart").onclick=()=>{audio();start()};
-$("#durSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||75;push()}};
+$("#durSel").onchange=$("#gapSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||75;G.gap=+$("#gapSel").value||0;push()}};
 $("#bAgain").onclick=()=>{audio();start()};
-$("#bLobby").onclick=()=>{if(!isHost)return;if(local){exitGame();return}G=Object.assign({},G,{ph:"lobby",run:false});push()};
+$("#bLobby").onclick=()=>{if(!isHost)return;if(local){G=Object.assign({},G,{ph:"lobby",run:false});enterLobby();return}G=Object.assign({},G,{ph:"lobby",run:false});for(const k of ["s1","s2","g"]){const h=G.roles&&G.roles[k];if(h&&h.id!==cid&&!peerMap[h.id])G.roles[k]=null}push()};
 
 /* ---------- sala ---------- */
-function enterLobby(){$("#codeShow").textContent=code;show("lobby");renderLobby()}
+function enterLobby(){$("#codeShow").textContent=code;
+  ["#codeBox","#rolesBox","#peersBox"].forEach(id=>$(id).hidden=local);
+  $("#lobby h2").textContent=local?"Impostazioni":"Sala d'attesa";
+  if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;$("#durSel").value=String(G.dur||75);$("#gapSel").value=String(G.gap??5)}
+  show("lobby");renderLobby()}
 function renderLobby(){
   if(!G||local)return;
   const list=peerList();
   const rb=$("#roles");rb.textContent="";
+  const R=G.roles||{};
   for(const k of Object.keys(ROLES)){
-    const taken=list.filter(p=>!p.me&&p.role===k&&k!=="v");
-    const b=document.createElement("button");b.className="role";b.type="button";b.setAttribute("aria-pressed",myRole===k?"true":"false");
+    const h=k!=="v"?R[k]:null,mine=myRole===k,takenBy=h&&h.id!==cid?h:null,waiting=requested===k&&!mine;
+    const b=document.createElement("button");b.className="role";b.type="button";b.setAttribute("aria-pressed",mine?"true":"false");
+    b.disabled=!!takenBy||!online&&!isHost;
     const s=document.createElement("span");s.textContent=ROLES[k][0];
-    const sm=document.createElement("small");sm.textContent=taken.length?"Preso da "+taken[0].nick:ROLES[k][1];
-    b.append(s,sm);b.onclick=()=>{myRole=k;pubMe();renderLobby();if(G.ph!=="lobby")route()};rb.append(b)}
+    const sm=document.createElement("small");
+    sm.textContent=mine?"Il tuo ruolo":takenBy?"Preso da "+(typeof takenBy.nick==="string"?takenBy.nick:"un giocatore"):waiting?"Richiesta inviata…":ROLES[k][1];
+    b.append(s,sm);b.onclick=()=>{if(!mine)requestRole(k)};rb.append(b)}
   const ul=$("#peers");ul.textContent="";
   for(const p of list){const li=document.createElement("li");const b=document.createElement("b");
     b.textContent=p.nick+(p.me?" (tu)":"")+(p.host?" · ha creato la partita":"");
     const s=document.createElement("span");s.textContent=p.role&&ROLES[p.role]?ROLES[p.role][0]:"Sceglie il ruolo…";li.append(b,s);ul.append(li)}
   const have=new Set(list.map(p=>p.role));const miss=["s1","s2","g"].filter(r=>!have.has(r)).map(r=>ROLES[r][0]);
-  $("#roleWarn").hidden=!miss.length;$("#roleWarn").textContent="Mancano: "+miss.join(", ")+". Potete iniziare lo stesso.";
+  $("#roleWarn").hidden=!miss.length;$("#roleWarn").textContent="Ruoli ancora liberi: "+miss.join(", ")+".";
   $("#hostBox").hidden=!isHost;$("#waitNote").hidden=isHost;
-  if(isHost)$("#durSel").value=String(G.dur||75)}
+  if(isHost){$("#durSel").value=String(G.dur||75);$("#gapSel").value=String(G.gap??5)}}
 
 /* ---------- gioco ---------- */
 function route(){
@@ -356,7 +396,8 @@ function route(){
 function sfxCheck(){const s={ph:G.ph,d:G.done||0,rnd:G.rnd||0};
   if(sig&&sig.rnd===s.rnd){if(s.d>sig.d){const r=G.hist[G.hist.length-1];r&&sfx[r.r]&&sfx[r.r]()}
     if(s.ph==="buzz"&&sig.ph!=="buzz")sfx.buzz();if(s.ph==="end"&&sig.ph!=="end")sfx.end()}
-  else if(sig&&s.ph==="play")sfx.start();
+  else if(sig&&s.ph==="play"&&sig.ph!=="play")sfx.start();
+  if(sig&&sig.rnd===s.rnd&&s.ph==="play"&&sig.ph==="gap")sfx.start();
   sig=s}
 function renderGame(){
   const role=local?"all":(myRole||"v");
@@ -372,17 +413,18 @@ function renderGame(){
     const n=(G.hist||[]).filter(h=>h.r==="pass").length;$("#finalNote").textContent=n===1?"1 passo usato":n?n+" passo usati":"";
     const ul=$("#hist");ul.textContent="";for(const h of (G.hist||[])){const li=document.createElement("li");li.className=["ok","no","pass"].includes(h.r)?h.r:"";li.textContent=String(h.w);ul.append(li)}
     $("#endHost").hidden=!isHost;$("#endWait").hidden=isHost;renderTime();return}
-  const buzz=G.ph==="buzz";
-  $("#card").classList.toggle("hide",!sees);
-  $("#word").textContent=sees?String(G.word||""):"Ascolta i suggeritori";
+  const buzz=G.ph==="buzz",gap=G.ph==="gap";
+  $("#card").classList.toggle("hide",!sees&&!gap);$("#card").classList.toggle("gap",gap);$("#cardSub").hidden=!gap;
+  $("#word").textContent=gap?String(Math.max(1,Math.ceil((gapDeadline-Date.now())/1000))):sees?String(G.word||""):"Ascolta i suggeritori";
   $("#buzzBanner").hidden=!buzz;
   $("#buzzBanner").textContent=role==="g"?"Rispondi ora! I suggeritori giudicano.":"PRENOTATO! Giusta o sbagliata?";
-  $("#bBuzz").hidden=!guess;$("#bBuzz").disabled=buzz;
+  $("#bBuzz").hidden=!guess;$("#bBuzz").disabled=buzz||gap;
+  $("#bOk").disabled=!buzz;$("#bNo").disabled=!buzz;
   $("#bOk").hidden=!judge;$("#bNo").hidden=!judge;
-  $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp;
+  $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp||gap;
   $("#bPass").textContent=ps>=mp?"Passo esauriti":"Passo ("+(mp-ps)+")";
   $("#bResume").hidden=!(buzz&&judge);
-  $("#hint").textContent=role==="g"?"Premi PRENOTA quando hai la risposta: il tempo si ferma.":role==="v"?"Stai guardando la partita.":"Una parola a testa, alternandovi. Niente parole con la stessa radice.";
+  $("#hint").textContent=gap?"Preparatevi: il tempo è fermo, la parola compare tra poco.":role==="g"?"Premi PRENOTA quando hai la risposta: il tempo si ferma.":role==="v"?"Stai guardando la partita.":buzz?"Ha risposto? Segnate se è giusta o sbagliata.":"Una parola a testa, alternandovi. Giusta e Sbagliata si attivano quando l'indovino prenota.";
   renderTime()}
 function renderTime(){
   if(!G||G.ph==="lobby"||$("#game").hidden)return;
@@ -392,6 +434,9 @@ function renderTime(){
   $("#clock").classList.toggle("low",sec<=10&&G.ph!=="end");
   $("#clock").classList.toggle("paused",G.ph==="buzz");
   if(G.run&&sec<=5&&sec>0&&sec!==lastTickSec){lastTickSec=sec;sfx.tick()}
+  if(G.ph==="gap"){const gs=Math.max(1,Math.ceil((gapDeadline-Date.now())/1000));
+    if($("#word").textContent!==String(gs)){$("#word").textContent=gs;sfx.tick()}
+    if(isHost&&Date.now()>=gapDeadline){resume();push()}}
   if(!G.run)lastTickSec=null;
   if(isHost&&G.run&&G.ph==="play"&&ms<=0)finish()}
 setInterval(renderTime,100);
