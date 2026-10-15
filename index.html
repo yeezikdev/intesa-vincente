@@ -322,19 +322,26 @@ function connect(){return new Promise((resolve,reject)=>{
     will:{topic:base+"p/"+cid,payload:"",retain:true,qos:1}});
   cli=c;
   c.on("connect",()=>{
-    c.subscribe(isHost?[base+"p/+",base+"act"]:[base+"p/+",base+"g"],{qos:1});
-    pubMe();if(isHost&&G)push();setNet(true);
-    if(!done){done=true;resolve()}});
+    /* prima ci si iscrive, poi si saluta: chi è già nella stanza risponde con il suo stato */
+    c.subscribe(isHost?[base+"p/+",base+"act",base+"hello"]:[base+"p/+",base+"g",base+"hello"],{qos:1},()=>{
+      if(c!==cli)return;pubMe();if(isHost&&G)push();
+      c.publish(base+"hello",JSON.stringify({c:cid,t:Date.now()}),{qos:1});
+      setNet(true);if(!done){done=true;resolve()}});});
   c.on("message",(topic,payload)=>{if(c===cli)onMsg(topic,payload.toString())});
   c.on("offline",()=>{if(c===cli)setNet(false)});
   c.on("error",()=>{if(!done){done=true;try{c.end(true)}catch(e){}cli=null;reject(new Error("errore"))}});
   setTimeout(()=>{if(!done){done=true;try{c.end(true)}catch(e){}cli=null;reject(new Error("timeout"))}},12000);
-  clearInterval(pushTimer);pushTimer=setInterval(()=>{if(isHost&&G&&(G.run||G.ph==="gap"))push()},3000);
+  /* battito: ogni 3 secondi ognuno ripete chi è, e chi ha creato la partita ripete lo stato */
+  clearInterval(pushTimer);pushTimer=setInterval(()=>{if(!cli||c!==cli)return;pubMe();if(isHost&&G)push();prune()},3000);
 })}
 function pubMe(){if(!cli)return;cli.publish(base+"p/"+cid,JSON.stringify({nick,role:myRole==="v"?"v":null,host:isHost,t:Date.now()}),{retain:true,qos:1})}
+function prune(){const now=Date.now();let ch=false;
+  for(const id of Object.keys(peerMap)){if(now-(peerMap[id]._seen||0)>12000){delete peerMap[id];ch=true;if(isHost&&G&&G.ph==="lobby"&&freeRoles(id))push()}}
+  if(ch)onPeers()}
 function onMsg(topic,s){
   const rest=topic.slice(base.length);
-  if(rest.startsWith("p/")){const id=rest.slice(2);const p=s?parse(s):null;if(p&&typeof p==="object")peerMap[id]=p;else{delete peerMap[id];if(isHost&&G&&G.ph==="lobby"&&freeRoles(id))push()}onPeers();return}
+  if(rest==="hello"){const h=parse(s);if(h&&h.c!==cid){pubMe();if(isHost&&G)push()}return}
+  if(rest.startsWith("p/")){const id=rest.slice(2);if(id===cid)return;const p=s?parse(s):null;if(p&&typeof p==="object"){p._seen=Date.now();peerMap[id]=p}else{delete peerMap[id];if(isHost&&G&&G.ph==="lobby"&&freeRoles(id))push()}onPeers();return}
   if(rest==="g"&&!isHost){const g=s?parse(s):null;if(g&&typeof g==="object")receive(g);return}
   if(rest==="act"&&isHost){const a=parse(s);if(!a||typeof a.t!=="string")return;const k=a.c+":"+a.n;if(seenAct[k])return;seenAct[k]=1;
     if(a.t==="role"){if(typeof a.c==="string")assignRole(a.c,a.r,typeof a.nick==="string"?a.nick.slice(0,18):"Giocatore");return}
@@ -405,9 +412,12 @@ function enterLobby(){$("#codeShow").textContent=code;
   $("#lobby h2").textContent=local?"Impostazioni":"Sala d'attesa";
   if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;$("#durSel").value=String(G.dur||75);$("#gapSel").value=String(G.gap??5)}
   show("lobby");renderLobby()}
+let lobbyKey="";
 function renderLobby(){
   if(!G||local)return;
   const list=peerList();
+  const key=JSON.stringify([list.map(p=>[p.id,p.nick,p.role,p.host]),G.roles,myRole,requested,online,isHost,G.dur,G.gap,$("#lobby").hidden]);
+  if(key===lobbyKey)return;lobbyKey=key;
   const rb=$("#roles");rb.textContent="";
   const R=G.roles||{};
   for(const k of Object.keys(ROLES)){
