@@ -135,7 +135,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
       <button id="btnCreate">Crea partita</button>
       <span class="label">Oppure entra con il codice</span>
       <div class="row">
-        <input id="codeIn" maxlength="4" placeholder="ABCD" autocomplete="off" autocapitalize="characters">
+        <input id="codeIn" maxlength="4" placeholder="1234" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
         <button id="btnJoin" class="ghost">Entra</button>
       </div>
       <p id="netNote" class="note" hidden></p>
@@ -284,7 +284,7 @@ $("#nickIn").addEventListener("input",()=>{if($("#nickIn").value.trim()){$("#nic
 function busy(b){$("#btnCreate").disabled=b;$("#btnJoin").disabled=b}
 
 $("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
-  const L="ABCDEFGHJKLMNPQRSTUVWXYZ";code=Array.from({length:4},()=>L[Math.floor(Math.random()*L.length)]).join("");
+  code=String(Math.floor(Math.random()*9000)+1000);
   isHost=true;local=false;myRole=null;
   wantV=false;requested=null;G={ph:"lobby",code,dur:75,gap:5,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};
   busy(true);note("Collegamento in corso…");
@@ -292,13 +292,14 @@ $("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
   busy(false);note("");push();enterLobby()};
 
 $("#btnJoin").onclick=async()=>{if(!getNick())return;audio();
-  code=$("#codeIn").value.trim().toUpperCase();
-  if(!/^[A-Z]{4}$/.test(code)){note("Il codice è di 4 lettere.");return}
+  code=$("#codeIn").value.replace(/\D/g,"");
+  if(!/^\d{4}$/.test(code)){note("Il codice è di 4 cifre.");return}
   isHost=false;local=false;myRole=null;wantV=false;requested=null;hostSeen=false;G={ph:"lobby",code,dur:75,roles:{s1:null,s2:null,g:null}};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");enterLobby();
   setTimeout(()=>{if(cli&&!hostSeen)$("#waitNote").textContent="Nessuna partita con il codice "+code+" per ora. Controlla il codice o aspetta che chi l'ha creata si colleghi."},5000)};
+$("#codeIn").addEventListener("input",()=>{const el=$("#codeIn"),v=el.value.replace(/\D/g,"").slice(0,4);if(v!==el.value)el.value=v});
 $("#codeIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btnJoin").click()});
 
 $("#btnLocal").onclick=()=>{if(!getNick())return;audio();local=true;isHost=true;myRole="all";code="";
