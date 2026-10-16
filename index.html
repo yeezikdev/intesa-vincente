@@ -92,12 +92,12 @@ button.pass{background:var(--blue)}
 .half .meta small{font-family:var(--body);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-left:4px}
 .half .sub{color:inherit;opacity:.7}
 .half.gap,.half.end{background:var(--panel);color:var(--gold);box-shadow:inset 0 0 0 1px var(--line)}
-.half.buzz{background:var(--red);color:#fff}
+.half.buzz{background:var(--gold);color:var(--bg)}
 .half.end .w{font-size:clamp(40px,12vw,64px)}
 .split-line{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
 .split-line::before,.split-line::after{content:"";flex:1;border-top:2px dashed var(--line)}
 /* un solo dispositivo: parola capovolta in alto, comandi al centro, parola dritta in basso */
-body.local .wrap{padding-block:10px 14px;gap:10px}
+body.local .wrap{padding-block:24px 32px;gap:10px}
 body.local #game{gap:10px}
 body.local #playArea{display:contents}
 body.local #game>.top{order:0}
@@ -109,11 +109,51 @@ body.local #card{order:5}
 body.local #endArea{order:6}
 body.local #hostGone{order:7}
 body.local #hint,body.local #splitLine,body.local #buzzBanner,.half .meta{display:none!important}
-body.local .card.buzz{background:var(--red);color:#fff;box-shadow:0 10px 0 color-mix(in srgb,var(--red) 55%,#000)}
+body.local .card.buzz{background:var(--gold);color:var(--bg)}
 body.local .card.buzz .sub,body.local .card.gap .sub{color:inherit;opacity:.75}
-body.local #bResume{font-size:20px;padding:16px;min-height:62px;order:-1}
+body.local #bResume{font-size:14px;padding:8px;background:transparent;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+/* un solo dispositivo: tempo, punti e passo dentro ogni cartellino; al centro solo Prenota, poi Giusta / Sbagliata */
+body.local .hud{display:none!important}
+body.local .wrap{min-height:100vh;min-height:100dvh}
+body.local #game{flex:1 1 auto}
+body.local #game .half,body.local #game .card{height:auto;flex:1 1 0;min-height:120px}
+/* tempo, punti e passo a sinistra della parola, con la stessa grafica del pannello centrale */
+body.local #game .card,body.local #game .half{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;justify-items:stretch;column-gap:10px;padding:20px 12px}
+.cside{display:flex;flex-direction:column;align-items:center;gap:10px;padding-left:10px;border-left:2px solid color-mix(in srgb,currentColor 15%,transparent)}
+.cside[hidden]{display:none!important}
+.cside .cardPass{position:static;font-size:13px;padding:8px 12px;min-height:52px;border-radius:14px}
+.cside .cardPass:disabled{font-size:11px;padding:8px;white-space:normal;max-width:72px;line-height:1.1}
+body.local #game .card .w,body.local #game .half .w{white-space:nowrap;overflow-wrap:normal}
+body.local #game .card>div:not(.cmeta),body.local #game .half>.hw{min-width:0;text-align:center}
+body.local #game .card .w,body.local #game .half .w{font-size:clamp(30px,9vw,56px)}
+.cmeta{display:flex;flex-direction:column;align-items:center;gap:8px;padding-right:10px;border-right:2px solid color-mix(in srgb,currentColor 15%,transparent)}
+.cmeta[hidden]{display:none!important}
+.mclock{position:relative;width:58px;height:58px}
+.mclock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.mclock circle{fill:none;stroke-width:11}
+.mclock .track{stroke:color-mix(in srgb,currentColor 18%,transparent)}
+.mclock .arc{stroke:var(--gold);stroke-linecap:round;transition:stroke .3s}
+.mclock.low .arc{stroke:var(--red)}
+.card.buzz .mclock .arc,.half.buzz .mclock .arc{stroke:var(--bg)}
+.mclock b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:900;font-size:26px;font-variant-numeric:tabular-nums}
+.mstat{display:flex;flex-direction:column;align-items:center;gap:1px}
+.mstat .label{font-size:9px;color:inherit;opacity:.6;letter-spacing:.1em}
+.mstat b{font-family:var(--display);font-weight:900;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
+.mstat .dots{height:auto;gap:4px;font-family:var(--display);font-weight:900;font-size:22px;line-height:1}
+.mstat .dots i{width:10px;height:10px}
+.mstat .dots i.used{box-shadow:inset 0 0 0 2px color-mix(in srgb,currentColor 30%,transparent)}
+body.local .pad .buzz,body.local .pad #bOk,body.local .pad #bNo{min-height:104px}
+body.local .pad.final{grid-template-columns:1fr 1fr 1fr}
+body.local .pad.final>button{grid-column:auto;min-height:104px;font-size:clamp(14px,4.2vw,20px);letter-spacing:.01em;padding:10px 4px;line-height:1.1;overflow-wrap:normal;word-break:normal}
+body.local .pad.final #bOk{order:1}
+body.local .pad.final #bSkip{order:2}
+body.local .pad.final #bNo{order:3}
 .half .sub{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
 .half,.card{position:relative}
+.startTag{display:inline-block;margin:0 auto 8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--gold);color:var(--bg);font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 2px 0 color-mix(in srgb,var(--gold) 55%,#000)}
+/* un solo dispositivo: lo spazio resta riservato, così la parola non salta quando il turno cambia */
+body.local .startTag[hidden]{display:inline-block!important;visibility:hidden}
+.startTag.other{background:transparent;color:inherit;opacity:.75;box-shadow:inset 0 0 0 2px currentColor}
 .cardPass{position:absolute;right:10px;bottom:10px;background:var(--blue);color:var(--bg);font-size:15px;font-weight:800;padding:8px 14px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 3px 0 color-mix(in srgb,var(--blue) 55%,#000)}
 .cardPass:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--blue) 55%,#000)}
 .cardPass:disabled{opacity:.45}
@@ -122,7 +162,8 @@ body.local .half,body.local .card{height:clamp(130px,26dvh,280px);min-height:0;p
 body.local .half .w,body.local .card .w{font-size:clamp(38px,11vw,64px)}
 body.local .half.gap,body.local .card.gap,body.local .half.end{box-shadow:0 10px 0 var(--line)}
 body.local .half.gap .w,body.local .card.gap .w{font-size:clamp(56px,16vw,88px)}
-body.local .half.buzz{box-shadow:0 10px 0 color-mix(in srgb,var(--red) 55%,#000)}
+/* parola prenotata: il cartellino diventa giallo */
+body.local #game .half.buzz,body.local #game .card.buzz{background:var(--gold);color:var(--bg);font-size:inherit;box-shadow:0 10px 0 color-mix(in srgb,var(--gold) 55%,#000)}
 body.local .clock{width:96px;height:96px}
 body.local .clock .t{font-size:40px}
 body.local .stat .num{font-size:36px}
@@ -139,6 +180,7 @@ body.local .buzz{font-size:32px;padding:16px;box-shadow:0 6px 0 color-mix(in srg
 .buzz{font-size:46px;padding:34px;background:var(--red);color:#fff;border-radius:50px;box-shadow:0 8px 0 color-mix(in srgb,var(--red) 55%,#000)}
 .buzz:active{transform:translateY(6px);box-shadow:0 2px 0 color-mix(in srgb,var(--red) 55%,#000)}
 .hint{font-size:14px;color:var(--muted);text-align:center;margin:0}
+.hint:empty{display:none}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
 .hist li{padding:4px 10px;border-radius:99px;font-size:14px;font-weight:600;background:var(--bg)}
 .hist li.ok{background:color-mix(in srgb,var(--green) 25%,var(--bg));color:var(--green)}
@@ -203,8 +245,33 @@ button.small{padding:8px 12px;font-size:14px;flex:0 0 auto}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .top .ghost{padding:8px 12px;font-size:14px}
 .top .row>*{flex:none}
+.top .exit{background:var(--red);color:#fff;padding:8px 12px;font-size:14px}
 .share{flex:none;display:inline-flex;align-items:center;gap:6px}
 .share::before{content:"";width:14px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3l5 5h-3v7h-4V8H7z M4 14h3v4h10v-4h3v7H4z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3l5 5h-3v7h-4V8H7z M4 14h3v4h10v-4h3v7H4z'/%3E%3C/svg%3E") center/contain no-repeat}
+dialog#notesDlg{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--fg);padding:20px;width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto}
+dialog#notesDlg::backdrop{background:rgba(8,6,30,.7)}
+.verbtn{background:none;border:0;padding:4px 6px;margin:-4px -6px;font:inherit;font-size:12px;font-weight:600;color:var(--muted);text-decoration:underline;text-underline-offset:3px;cursor:pointer;border-radius:6px}
+.verbtn:hover{color:var(--fg)}
+.rel{display:flex;flex-direction:column;gap:6px;padding:12px 14px;background:var(--bg);border-radius:12px;border-left:4px solid var(--line)}
+.rel.cur{border-left-color:var(--gold)}
+.rel-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.rel-h b{font-family:var(--display);font-weight:900;font-size:24px;letter-spacing:.02em}
+.rel.cur .rel-h b{color:var(--gold)}
+.rel-h span{font-size:13px;color:var(--muted)}
+.peers li{align-items:center}
+.peers li .rchip{font-size:12px;font-weight:800;letter-spacing:.04em;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.peers li .r-s1,.peers li .r-s2{background:color-mix(in srgb,var(--green) 22%,transparent);color:var(--green)}
+.peers li .r-g{background:color-mix(in srgb,var(--red) 22%,transparent);color:var(--red)}
+.peers li .r-v{background:color-mix(in srgb,var(--blue) 20%,transparent);color:var(--blue)}
+.peers li .r-none{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line);font-weight:600}
+.setgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.set{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.set .label{font-size:11px;line-height:1.25}
+.set select{margin-top:auto}
+.set select{font-size:16px;font-weight:700;padding:10px 6px 10px 10px;background:var(--panel);text-overflow:ellipsis}
+.chip.host{background:var(--gold);color:var(--bg);font-size:11px;margin:0 0 0 8px;vertical-align:2px}
+.chip.new{background:var(--gold);color:var(--bg)}
+.rel ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:15px}
 dialog#shareDlg{border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--fg);padding:20px;width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto}
 dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 .dlg{display:flex;flex-direction:column;gap:14px;align-items:stretch}
@@ -250,7 +317,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
       <button id="btnLocal" class="local-btn">Inizia</button>
     </section>
     <button class="ghost histopen" id="btnHistory"><span class="ht">Cronologia punteggi<small id="histSummary"></small></span></button>
-    <footer class="appver">Intesa Vincente · ver <span id="appVer"></span></footer>
+    <footer class="appver">Intesa Vincente · <button class="verbtn" id="btnVer" aria-haspopup="dialog">ver <span id="appVer"></span></button></footer>
   </section>
 
   <!-- CRONOLOGIA -->
@@ -258,7 +325,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
     <div class="top"><h2 id="hTitle">Cronologia punteggi</h2><button class="ghost" id="btnHistBack">Indietro</button></div>
     <section class="box histbox" id="historyBox" aria-labelledby="hTitle">
       <div class="stats3">
-        <div><span class="label">Manche</span><b id="stN">0</b></div>
+        <div><span class="label">Partite</span><b id="stN">0</b></div>
         <div><span class="label">Record</span><b id="stBest">–</b></div>
         <div><span class="label">Media</span><b id="stAvg">–</b></div>
       </div>
@@ -268,7 +335,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
         <button class="tab" role="tab" data-f="solo" aria-selected="false">Un dispositivo</button>
       </div>
       <ul class="hlist" id="hList"></ul>
-      <p class="note center" id="hEmpty">Nessuna manche ancora. Quando finisce una manche, il punteggio compare qui.</p>
+      <p class="note center" id="hEmpty">Nessuna partita ancora. Quando finisce una partita, il punteggio compare qui.</p>
       <div class="row" id="hClearRow"><button class="ghost small" id="hClear">Cancella cronologia</button></div>
       <div class="confirm" id="hConfirm" hidden>
         <p>Cancellare tutta la cronologia di questo telefono?</p>
@@ -280,7 +347,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 
   <!-- SALA -->
   <section id="lobby" class="screen" hidden>
-    <div class="top"><h2>Sala d'attesa</h2><div class="row" style="flex:none;gap:8px"><button class="ghost share" data-share>Condividi</button><button class="ghost" data-exit>Esci</button></div></div>
+    <div class="top"><h2>Sala d'attesa</h2><div class="row" style="flex:none;gap:8px"><button class="ghost share" data-share>Condividi</button><button class="exit" data-exit>Esci</button></div></div>
     <div class="box" id="codeBox">
       <span class="label center">Codice partita</span>
       <div class="code" id="codeShow">····</div>
@@ -296,22 +363,46 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
       <p class="warn" id="roleWarn" hidden></p>
     </div>
     <div class="box" id="hostBox" hidden>
-      <label class="label" for="durSel">Tempo a disposizione</label>
-      <select id="durSel">
-        <option value="60" selected>60 secondi</option>
-        <option value="75">75 secondi</option>
-        <option value="90">90 secondi</option>
-        <option value="120">120 secondi</option>
-      </select>
-      <label class="label" for="gapSel">Pausa tra una parola e l'altra</label>
-      <select id="gapSel">
-        <option value="0">Nessuna pausa</option>
-        <option value="3" selected>3 secondi</option>
-        <option value="5">5 secondi</option>
-        <option value="7">7 secondi</option>
-        <option value="10">10 secondi</option>
-      </select>
-      <p class="note">Durante la pausa il tempo si ferma e la parola successiva resta nascosta.</p>
+      <span class="label">Impostazioni partita</span>
+      <div class="setgrid">
+        <div class="set">
+          <label class="label" for="durSel">Tempo</label>
+        <select id="durSel">
+          <option value="60" selected>60 sec</option>
+          <option value="75">75 sec</option>
+          <option value="90">90 sec</option>
+          <option value="120">120 sec</option>
+        </select>
+        </div>
+        <div class="set">
+          <label class="label" for="gapSel">Pausa</label>
+        <select id="gapSel">
+          <option value="0">Nessuna</option>
+          <option value="3" selected>3 sec</option>
+          <option value="5">5 sec</option>
+          <option value="7">7 sec</option>
+          <option value="10">10 sec</option>
+        </select>
+        </div>
+        <div class="set">
+          <label class="label" for="passSel">Passo</label>
+        <select id="passSel">
+          <option value="0">Nessuno</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="99">Illimitati</option>
+        </select>
+        </div>
+        <div class="set">
+          <label class="label" for="penSel">Penalità</label>
+        <select id="penSel">
+          <option value="1" selected>−1 punto</option>
+          <option value="0">0 punti</option>
+        </select>
+        </div>
+      </div>
       <button id="btnStart" class="big">Via!</button>
     </div>
     <p class="note center" id="waitNote">In attesa che chi ha creato la partita la avvii.</p>
@@ -320,13 +411,13 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
   <!-- GIOCO -->
   <section id="game" class="screen" hidden>
     <div class="half" id="half" hidden aria-label="Lato di chi sta di fronte">
-      <div class="meta"><span><span id="hTime">60</span><small>sec</small></span><span><span id="hScore">0</span><small>punti</small></span></div>
-      <div class="sub" id="hSub" hidden>Prossima parola tra</div>
-      <div class="w" id="hWord">—</div>
-      <button class="cardPass" id="hPass" data-cpass hidden>Passo</button>
+      <div class="cmeta" data-meta hidden><div class="mclock"><svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" data-marc cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><b data-mt>60</b></div><div class="mstat"><span class="label">Punti</span><b data-ms>0</b></div></div>
+      <div class="hw"><span class="startTag" id="hStart" hidden>Inizi tu!</span><div class="sub" id="hSub" hidden>Prossima parola tra</div>
+      <div class="w" id="hWord">—</div></div>
+      <div class="cside" data-side hidden><div class="mstat mpw"><span class="label">Passo</span><div class="dots" data-mp></div></div><button class="cardPass" id="hPass" data-cpass hidden>Passo</button></div>
     </div>
     <div class="split-line" id="splitLine" hidden>il tuo lato</div>
-    <div class="top"><span class="label" id="roleTag"></span><span class="net" data-net><i></i><span>Collegato</span></span><button class="ghost" data-exit>Esci</button></div>
+    <div class="top"><span class="label" id="roleTag"></span><span class="net" data-net><i></i><span>Collegato</span></span><div class="row" style="flex:none;gap:8px"><button class="ghost" id="btnBack" hidden>Indietro</button><button class="exit" data-exit>Esci</button></div></div>
     <div class="hud">
       <div class="stat"><span class="label">Punti</span><span class="num" id="score">0</span></div>
       <div class="clock" id="clock">
@@ -338,7 +429,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 
     <div id="playArea" class="screen">
       <div class="banner" id="buzzBanner" hidden>PRENOTATO!</div>
-      <div class="card" id="card"><div><div class="sub" id="cardSub" hidden>Prossima parola tra</div><div class="w" id="word">—</div></div><button class="cardPass" id="cPass" data-cpass hidden>Passo</button></div>
+      <div class="card" id="card"><div class="cmeta" data-meta hidden><div class="mclock"><svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" data-marc cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><b data-mt>60</b></div><div class="mstat"><span class="label">Punti</span><b data-ms>0</b></div></div><div><span class="startTag" id="cStart" hidden></span><div class="sub" id="cardSub" hidden>Prossima parola tra</div><div class="w" id="word">—</div></div><div class="cside" data-side hidden><div class="mstat mpw"><span class="label">Passo</span><div class="dots" data-mp></div></div><button class="cardPass" id="cPass" data-cpass hidden>Passo</button></div></div>
       <p class="hint" id="hint"></p>
       <div class="pad">
         <button id="bBuzz" class="buzz wide">Prenota</button>
@@ -356,12 +447,12 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
         <div class="final" id="finalScore">0</div>
         <p class="note" id="finalNote"></p>
       </div>
-      <div class="box"><span class="label">Le parole della manche</span><ul class="hist" id="hist"></ul></div>
+      <div class="box"><span class="label">Le parole della partita</span><ul class="hist" id="hist"></ul></div>
       <div class="row" id="endHost">
-        <button id="bAgain" class="big">Nuova manche</button>
+        <button id="bAgain" class="big">Nuova partita</button>
         <button id="bLobby" class="ghost">Torna alla sala</button>
       </div>
-      <p class="note center" id="endWait">In attesa della prossima manche.</p>
+      <p class="note center" id="endWait">In attesa della prossima partita.</p>
     </div>
     <p class="warn center" id="hostGone" hidden>Chi ha creato la partita si è disconnesso. Il gioco riprende quando torna.</p>
   </section>
@@ -379,6 +470,13 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
   </div>
 </dialog>
 
+<dialog id="notesDlg" aria-labelledby="notesTitle">
+  <div class="dlg">
+    <div class="top"><h2 id="notesTitle">Novità</h2><button class="ghost" id="notesClose">Chiudi</button></div>
+    <div class="dlg" id="notesList"></div>
+  </div>
+</dialog>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>
@@ -387,7 +485,24 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 // Server pubblico gratuito che fa da "ponte" tra i telefoni. Nessun account richiesto.
 const BROKER="wss://broker.hivemq.com:8884/mqtt";
 const NS="intesa-vincente-yeezik/v1/";
-const APP_VERSION="1.0.0";
+const APP_VERSION="1.1.8"; /* quando cambi versione aggiungi una voce in cima a PATCH_NOTES */
+/* patch notes: la prima voce è la versione attuale */
+const PATCH_NOTES=[
+  {v:"1.1.8",d:"Ottobre 2026",n:[
+    "New: viene indicato quale suggeritore inizia a dare l'indizio: il primo è estratto a caso, poi si alternano a ogni parola.",
+    "New: pulsante Indietro durante la partita per tornare alla sala o alle impostazioni.",
+    "New: cronologia delle novità, tocca il numero di versione in fondo alla pagina.",
+    "Impostazioni della partita riorganizzate in una griglia più compatta.",
+    "In sala ruoli e Host sono evidenziati con etichette colorate.",
+    "Il pulsante Esci è rosso e riporta sempre alla homepage.",
+    "Il riepilogo di fine partita indica quando si gioca senza penalità."]},
+  {v:"1.0.0",d:"Prima versione",n:[
+    "Gioco online con un telefono a testa: due suggeritori, un indovino e gli spettatori.",
+    "Modalità con un solo dispositivo, con la parola leggibile da entrambi i lati.",
+    "Tempo regolabile e pausa tra una parola e l'altra.",
+    "Cronologia dei punteggi salvata sul telefono, con record e media.",
+    "Condivisione della partita con QR code e link."]}
+];
 const SHARE_URL="https://yeezikdev.github.io/intesa-vincente/";
 
 const WORDS=("cane gatto mare sole luna stella pane vino pizza pasta caffè scuola libro penna treno aereo nave macchina bicicletta strada ponte fiume montagna neve pioggia vento nuvola fuoco acqua terra albero fiore foglia giardino casa porta finestra chiave letto sedia tavolo specchio cucina forno frigorifero bagno doccia sapone asciugamano telefono computer televisione radio musica chitarra pianoforte tamburo canzone ballo festa regalo torta candela compleanno natale vacanza spiaggia ombrellone valigia passaporto biglietto stazione aeroporto albergo museo teatro cinema film attore regista palco applauso calcio pallone portiere arbitro gol stadio squadra campione medaglia corsa nuoto palestra tennis sciatore ghiaccio inverno estate autunno primavera mattina sera notte sogno sveglia orologio tempo calendario domenica lunedì mese anno storia guerra pace re regina castello principe drago cavaliere spada scudo tesoro mappa isola pirata bussola faro pescatore rete pesce balena squalo delfino polpo granchio conchiglia sabbia onda vela barca porto marinaio capitano pilota astronauta razzo pianeta universo telescopio scienza medico ospedale infermiere farmacia febbre dente sorriso lacrima risata bacio abbraccio amore cuore amico nemico famiglia mamma papà nonno bambino maestro lavagna gesso compito esame voto pagella zaino matita gomma righello forbici colla carta busta lettera francobollo postino giornale notizia segreto bugia verità giudice avvocato legge polizia ladro prigione lucchetto banca soldi moneta portafoglio prezzo negozio mercato frutta mela banana arancia limone fragola ciliegia uva pomodoro patata cipolla aglio insalata formaggio latte burro uovo gallina mucca maiale cavallo pecora asino coniglio topo elefante leone tigre giraffa scimmia orso lupo volpe aquila gufo pappagallo farfalla ape formica ragno serpente coccodrillo tartaruga rana zanzara cappello sciarpa guanti scarpe stivali giacca ombrello occhiali anello collana orecchino profumo trucco parrucchiere barba baffi capelli occhio naso bocca orecchio mano piede ginocchio spalla schiena pancia fame sete sonno freddo caldo paura coraggio fortuna magia strega fantasma vampiro mostro circo pagliaccio giocoliere mago dado scacchi puzzle gioco premio vittoria sconfitta gara traguardo ruota motore benzina semaforo incrocio parcheggio multa vigile autostrada galleria vulcano terremoto deserto cammello oasi giungla foresta lago cascata grotta tempesta fulmine tuono arcobaleno nebbia gelato cioccolato caramella biscotto zucchero sale pepe olio aceto padella pentola forchetta coltello cucchiaio piatto bicchiere bottiglia tappo cameriere cuoco ristorante menu conto mancia discoteca microfono cuffie vinile concerto").split(/\s+/).filter((w,i,a)=>w&&a.indexOf(w)===i);
@@ -405,6 +520,8 @@ function audio(){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)
 function tone(f,d,type="sine",v=.2,when=0){if(!ac)return;try{const o=ac.createOscillator(),g=ac.createGain(),t=ac.currentTime+when;o.type=type;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(ac.destination);o.start(t);o.stop(t+d)}catch(e){}}
 const sfx={ok(){tone(880,.15,"triangle");tone(1320,.25,"triangle",.2,.12)},no(){tone(220,.35,"sawtooth",.15)},pass(){tone(520,.12,"square",.1);tone(420,.12,"square",.1,.1)},buzz(){tone(160,.5,"square",.2)},end(){tone(330,.9,"sawtooth",.18);tone(247,1.1,"sawtooth",.15,.25)},tick(){tone(1000,.06,"square",.08)},start(){tone(660,.12,"triangle");tone(990,.2,"triangle",.2,.12)}};
 document.addEventListener("pointerdown",audio,{passive:true});
+/* ---------- vibrazione quando l'indovino prenota ---------- */
+function vibrate(p){try{if(typeof navigator.vibrate==="function")navigator.vibrate(p)}catch(e){}}
 
 /* ---------- utility ---------- */
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -448,9 +565,9 @@ function renderHistory(){
   $("#stAvg").textContent=list.length?(Math.round(list.reduce((a,x)=>a+x.score,0)/list.length*10)/10).toString().replace(".",","):"–";
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.f===hFilter?"true":"false"));
   const ul=$("#hList");ul.textContent="";
-  $("#hEmpty").hidden=!!list.length;$("#hEmpty").textContent=all.length?"Nessuna manche in questa categoria.":"Nessuna manche ancora. Quando finisce una manche, il punteggio compare qui.";
+  $("#hEmpty").hidden=!!list.length;$("#hEmpty").textContent=all.length?"Nessuna partita in questa categoria.":"Nessuna partita ancora. Quando finisce una partita, il punteggio compare qui.";
   $("#hClearRow").hidden=!all.length;
-  $("#histSummary").textContent=all.length?(all.length===1?"1 manche":all.length+" manche")+" · record "+Math.max(...all.map(x=>x.score)):"";
+  $("#histSummary").textContent=all.length?(all.length===1?"1 partita":all.length+" partite")+" · record "+Math.max(...all.map(x=>x.score)):"";
   for(const x of list.slice(0,30)){
     const li=document.createElement("li");li.className="hitem "+(x.mode==="solo"?"solo":"online");
     const det=document.createElement("details");const sm=document.createElement("summary");
@@ -484,7 +601,7 @@ function busy(b){$("#btnCreate").disabled=b;$("#btnJoin").disabled=b}
 $("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
   code=String(Math.floor(Math.random()*9000)+1000);
   isHost=true;local=false;myRole=null;
-  wantV=false;requested=null;G={ph:"lobby",code,dur:60,gap:3,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};
+  wantV=false;requested=null;G={ph:"lobby",code,dur:60,gap:3,pen:1,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");push();enterLobby()};
@@ -501,9 +618,11 @@ $("#codeIn").addEventListener("input",()=>{const el=$("#codeIn"),v=el.value.repl
 $("#codeIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btnJoin").click()});
 
 $("#btnLocal").onclick=()=>{nick=$("#nickIn").value.trim().slice(0,18);$("#nickErr").hidden=true;$("#nickIn").setAttribute("aria-invalid","false");audio();local=true;isHost=true;myRole="all";code="";
-  G={ph:"lobby",code:"",dur:60,gap:3,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};enterLobby()};
+  G={ph:"lobby",code:"",dur:60,gap:3,pen:1,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};enterLobby()};
 
 document.querySelectorAll("[data-exit]").forEach(b=>b.onclick=exitGame);
+/* Indietro: dalla partita torna alla schermata prima (sala o impostazioni). Solo chi guida la partita. */
+$("#btnBack").onclick=()=>$("#bLobby").click();
 function exitGame(){
   if(cli){try{cli.publish(base+"p/"+cid,"",{retain:true,qos:1});if(isHost)cli.publish(base+"g","",{retain:true,qos:1})}catch(e){}
     const c=cli;cli=null;setTimeout(()=>{try{c.end(true)}catch(e){}},400)}
@@ -544,6 +663,8 @@ function onMsg(topic,s){
   if(rest==="g"&&!isHost){const g=s?parse(s):null;if(g&&typeof g==="object")receive(g);return}
   if(rest==="act"&&isHost){const a=parse(s);if(!a||typeof a.t!=="string")return;const k=a.c+":"+a.n;if(seenAct[k])return;seenAct[k]=1;
     if(a.t==="role"){if(typeof a.c==="string")assignRole(a.c,a.r,typeof a.nick==="string"?a.nick.slice(0,18):"Giocatore");return}
+    /* il Passo lo possono dare solo i suggeritori */
+    if(a.t==="pass"&&!["s1","s2"].includes(holderOf(a.c)))return;
     apply(a.t,a.wi)}
 }
 function holderOf(id){const R=(G&&G.roles)||{};for(const k of ["s1","s2","g"])if(R[k]&&R[k].id===id)return k;return null}
@@ -585,7 +706,7 @@ function apply(t,wi){
   if(G.run)G.left=Math.max(0,deadline-Date.now());
   if(t==="buzz"){if(G.ph!=="play")return;G.run=false;G.ph="buzz"}
   else if(t==="ok"||t==="no"||t==="skip"){if(G.ph!=="buzz")return;if(t==="skip"&&!G.final)return;
-    if(t==="ok")G.score++;else if(t==="no")G.score=Math.max(0,G.score-1);record(t);
+    if(t==="ok")G.score++;else if(t==="no"&&G.pen)G.score=Math.max(0,G.score-1);record(t);
     if(G.final||G.left<=0){finish();return}
     nextWord();goOn()}
   else if(t==="pass"){if(G.final||G.pass>=G.maxPass)return;if(local&&G.ph==="buzz")return;G.pass++;record("pass");if(G.left<=0){finish();return}nextWord();goOn()}
@@ -593,14 +714,15 @@ function apply(t,wi){
   else return;
   push()}
 function start(){
-  if(!isHost)return;const dur=+$("#durSel").value||60,gap=+$("#gapSel").value||0;
-  deck=shuffle(WORDS);G={ph:"play",final:false,t0:Date.now(),code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
+  if(!isHost)return;const dur=+$("#durSel").value||60,gap=+$("#gapSel").value||0,maxPass=+$("#passSel").value,pen=+$("#penSel").value;
+  deck=shuffle(WORDS);G={ph:"play",final:false,t0:Date.now(),code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,pen,st0:Math.random()<.5?0:1,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:isNaN(maxPass)?3:maxPass,left:dur*1000,run:true,word:"",hist:[],done:0};
   nextWord();if(gap>0)startGap();else resume();keepAwake();push()}
 /* tempo scaduto: l'ultima parola si prenota da sola */
 function timeUp(){G.run=false;G.left=0;G.ph="buzz";G.final=true;push()}
 function finish(){G.run=false;G.left=0;G.ph="end";G.final=false;push()}
 $("#btnStart").onclick=()=>{audio();start()};
-$("#durSel").onchange=$("#gapSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||60;G.gap=+$("#gapSel").value||0;push()}};
+$("#durSel").onchange=$("#gapSel").onchange=$("#passSel").onchange=$("#penSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||60;G.gap=+$("#gapSel").value||0;G.maxPass=+$("#passSel").value;G.pen=+$("#penSel").value;push()}};
+function fillSettings(){$("#durSel").value=String(G.dur||60);$("#gapSel").value=String(G.gap??3);$("#passSel").value=String(G.maxPass??3);$("#penSel").value=String(G.pen??1)}
 $("#bAgain").onclick=()=>{audio();start()};
 $("#bLobby").onclick=()=>{if(!isHost)return;if(local){G=Object.assign({},G,{ph:"lobby",run:false});enterLobby();return}G=Object.assign({},G,{ph:"lobby",run:false});for(const k of ["s1","s2","g"]){const h=G.roles&&G.roles[k];if(h&&h.id!==cid&&!peerMap[h.id])G.roles[k]=null}push()};
 
@@ -608,13 +730,13 @@ $("#bLobby").onclick=()=>{if(!isHost)return;if(local){G=Object.assign({},G,{ph:"
 function enterLobby(){$("#codeShow").textContent=code;
   ["#codeBox","#rolesBox","#peersBox"].forEach(id=>$(id).hidden=local);
   $("#lobby h2").textContent=local?"Impostazioni":"Sala d'attesa";
-  if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;$("#durSel").value=String(G.dur||60);$("#gapSel").value=String(G.gap??3)}
+  if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;fillSettings()}
   show("lobby");renderLobby()}
 let lobbyKey="";
 function renderLobby(){
   if(!G||local)return;
   const list=peerList();
-  const key=JSON.stringify([list.map(p=>[p.id,p.nick,p.role,p.host]),G.roles,myRole,requested,online,isHost,G.dur,G.gap,$("#lobby").hidden]);
+  const key=JSON.stringify([list.map(p=>[p.id,p.nick,p.role,p.host]),G.roles,myRole,requested,online,isHost,G.dur,G.gap,G.maxPass,G.pen,$("#lobby").hidden]);
   if(key===lobbyKey)return;lobbyKey=key;
   const rb=$("#roles");rb.textContent="";
   const R=G.roles||{};
@@ -628,12 +750,13 @@ function renderLobby(){
     b.append(s,sm);b.onclick=()=>requestRole(mine?"none":k);rb.append(b)}
   const ul=$("#peers");ul.textContent="";
   for(const p of list){const li=document.createElement("li");const b=document.createElement("b");
-    b.textContent=p.nick+(p.me?" (tu)":"")+(p.host?" · ha creato la partita":"");
-    const s=document.createElement("span");s.textContent=p.role&&ROLES[p.role]?ROLES[p.role][0]:"Sceglie il ruolo…";li.append(b,s);ul.append(li)}
+    b.textContent=p.nick+(p.me?" (tu)":"");
+    if(p.host){const hc=document.createElement("span");hc.className="chip host";hc.textContent="Host";b.append(hc)}
+    const s=document.createElement("span");const rk=p.role&&ROLES[p.role]?p.role:"none";s.className="rchip r-"+rk;s.textContent=rk!=="none"?ROLES[rk][0]:"Sceglie il ruolo…";li.append(b,s);ul.append(li)}
   const have=new Set(list.map(p=>p.role));const miss=["s1","s2","g"].filter(r=>!have.has(r)).map(r=>ROLES[r][0]);
   $("#roleWarn").hidden=!miss.length;$("#roleWarn").textContent="Ruoli ancora liberi: "+miss.join(", ")+".";
   $("#hostBox").hidden=!isHost;$("#waitNote").hidden=isHost;
-  if(isHost){$("#durSel").value=String(G.dur||60);$("#gapSel").value=String(G.gap??3)}}
+  if(isHost)fillSettings()}
 
 /* ---------- gioco ---------- */
 function route(){
@@ -644,32 +767,48 @@ function route(){
   renderGame();sfxCheck()}
 function sfxCheck(){const s={ph:G.ph,d:G.done||0,rnd:G.rnd||0};
   if(sig&&sig.rnd===s.rnd){if(s.d>sig.d){const r=G.hist[G.hist.length-1];r&&sfx[r.r]&&sfx[r.r]()}
-    if(s.ph==="buzz"&&sig.ph!=="buzz")sfx.buzz();if(s.ph==="end"&&sig.ph!=="end")sfx.end()}
+    if(s.ph==="buzz"&&sig.ph!=="buzz"){sfx.buzz();vibrate(G.final?[400]:[200,80,200])}if(s.ph==="end"&&sig.ph!=="end")sfx.end()}
   else if(sig&&s.ph==="play"&&sig.ph!=="play")sfx.start();
   if(sig&&sig.rnd===s.rnd&&s.ph==="play"&&sig.ph==="gap")sfx.start();
   sig=s}
-function setWord(t){$("#word").textContent=t;if(local&&G&&G.ph!=="end")$("#hWord").textContent=t}
+function setWord(t){$("#word").textContent=t;if(local&&G&&G.ph!=="end")$("#hWord").textContent=t;if(local)requestAnimationFrame(fitWords)}
+/* un solo dispositivo: rimpicciolisce le parole lunghe finché stanno nella colonna centrale */
+function fitWords(){["#word","#hWord"].forEach(id=>{const w=$(id),box=w.parentNode;w.style.fontSize="";
+  let f=parseFloat(getComputedStyle(w).fontSize);const max=box.clientWidth;
+  while(w.scrollWidth>max&&f>16){f-=2;w.style.fontSize=f+"px"}})}
+window.addEventListener("resize",()=>{if(local)fitWords()});
 function renderHalf(){
   const on=local&&G&&G.ph!=="lobby";$("#half").hidden=!on;$("#splitLine").hidden=true;document.body.classList.toggle("local",!!on);
   if(!on)return;const h=$("#half"),ph=G.ph;
   h.classList.toggle("gap",ph==="gap");h.classList.toggle("buzz",ph==="buzz");h.classList.toggle("end",ph==="end");
-  $("#hScore").textContent=G.score||0;
   $("#hSub").hidden=ph!=="gap";$("#hSub").textContent="Prossima parola tra";
-  if(ph==="end"){$("#hSub").hidden=false;$("#hSub").textContent="Tempo scaduto";$("#hWord").textContent=(G.score||0)+" punti"}
+  if(ph==="end"){$("#hSub").hidden=false;$("#hSub").textContent="Tempo scaduto";$("#hWord").style.fontSize="";$("#hWord").textContent=(G.score||0)+" punti"}
   else if(ph==="buzz"){$("#hSub").hidden=false;$("#hSub").textContent=G.final?"Tempo scaduto · ultima risposta":"Prenotato";$("#hWord").textContent=String(G.word||"")}}
+/* chi inizia a suggerire: estratto a caso a inizio partita, poi si alterna a ogni parola */
+function starter(){return ((G.wi||0)+(G.st0||0))%2?"s1":"s2"}
+function renderStarter(){
+  const show=G&&(G.ph==="play"||G.ph==="gap"),k=show?starter():null,cs=$("#cStart"),hs=$("#hStart");
+  if(local){
+    /* lato in basso = Suggeritore 1, lato capovolto in alto = Suggeritore 2 */
+    cs.className="startTag";cs.textContent="Inizi tu!";cs.hidden=!show||k!=="s1";hs.hidden=!show||k!=="s2";return}
+  hs.hidden=true;if(!show){cs.hidden=true;return}
+  const R=G.roles||{},nm=R[k]&&typeof R[k].nick==="string"?R[k].nick.slice(0,18):ROLES[k][0];
+  const me=myRole===k;cs.hidden=false;cs.className="startTag"+(me?"":" other");
+  cs.textContent=me?"Inizi tu!":"Inizia "+nm}
 function renderGame(){
   const role=local?"all":(myRole||"v");
   const sees=role!=="g",plays=role!=="v",judge=role==="s1"||role==="s2"||role==="all",guess=role==="g"||role==="all";
+  $("#btnBack").hidden=!isHost;
   $("#roleTag").textContent=local?"Un solo dispositivo":(ROLES[role]?ROLES[role][0]:"Spettatore")+" · "+nick;
   document.querySelectorAll("[data-net]").forEach(e=>e.hidden=local);
   $("#score").textContent=G.score||0;
-  const mp=G.maxPass||3,ps=G.pass||0;
-  const d=$("#dots");d.textContent="";for(let i=0;i<mp;i++){const e=document.createElement("i");if(i<ps)e.className="used";d.append(e)}
-  renderHalf();
-  const end=G.ph==="end";$("#playArea").hidden=end;$("#endArea").hidden=!end;
+  const mp=G.maxPass??3,ps=G.pass||0,unl=mp>=99;
+  const d=$("#dots");d.textContent="";if(unl){d.textContent="∞";d.style.fontFamily="var(--display)";d.style.fontWeight="900";d.style.fontSize="40px"}else for(let i=0;i<mp;i++){const e=document.createElement("i");if(i<ps)e.className="used";d.append(e)}
+  renderHalf();renderStarter();
+  const end=G.ph==="end";$("#playArea").hidden=end;$("#endArea").hidden=!end;if(end)document.querySelectorAll("[data-meta],[data-side]").forEach(m=>m.hidden=true);
   if(end){
     $("#finalScore").textContent=G.score||0;
-    const H=G.hist||[],c=r=>H.filter(h=>h.r===r).length;$("#finalNote").textContent=c("ok")+" giuste · "+c("no")+" sbagliate · "+c("pass")+" passo"+(c("skip")?" · ultima senza risposta":"");
+    const H=G.hist||[],c=r=>H.filter(h=>h.r===r).length;$("#finalNote").textContent=c("ok")+" giuste · "+c("no")+" sbagliate · "+c("pass")+" passo"+(G.pen===0?" · senza penalità":"")+(c("skip")?" · ultima senza risposta":"");
     if(lastRec&&lastRec.best&&lastRec.score===(G.score||0)){const b=document.createElement("span");b.className="recnote";b.textContent=" · Nuovo record!";$("#finalNote").append(b)}
     const ul=$("#hist");ul.textContent="";for(const h of (G.hist||[])){const li=document.createElement("li");li.className=["ok","no","pass","skip"].includes(h.r)?h.r:"";li.textContent=String(h.w);ul.append(li)}
     $("#endHost").hidden=!isHost;$("#endWait").hidden=isHost;renderTime();return}
@@ -683,26 +822,32 @@ function renderGame(){
   $("#bBuzz").hidden=!guess;$("#bBuzz").disabled=buzz||gap;
   $("#bOk").disabled=!buzz;$("#bNo").disabled=!buzz;
   $("#bOk").hidden=!judge;$("#bNo").hidden=!judge;
-  $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp||gap||fin;
-  $("#bPass").textContent=ps>=mp?"Passo esauriti":"Passo ("+(mp-ps)+")";
+  $("#bPass").hidden=!judge||mp===0;$("#bPass").disabled=ps>=mp||gap||fin;
+  $("#bPass").textContent=unl?"Passo":ps>=mp?"Passo esauriti":"Passo ("+(mp-ps)+")";
   $("#bResume").hidden=!(buzz&&judge)||fin;
   if(local){
     /* un solo dispositivo: stessa altezza sempre, i bottoni si scambiano di posto */
     $("#card").classList.toggle("buzz",buzz);
     $("#cardSub").hidden=!(gap||buzz);
     $("#cardSub").textContent=gap?"Prossima parola tra":fin?"Tempo scaduto · ultima risposta":"Prenotato";
-    $("#bBuzz").hidden=buzz;
+    $("#bBuzz").hidden=buzz;$("#bOk").hidden=!buzz;$("#bNo").hidden=!buzz;
+    /* tempo scaduto: Giusta · Non rispondo · Sbagliata sulla stessa riga */
+    document.querySelector("#playArea .pad").classList.toggle("final",!!fin);
+    document.querySelectorAll("[data-meta]").forEach(m=>{m.hidden=false;m.querySelector("[data-ms]").textContent=G.score||0});
+    document.querySelectorAll("[data-side]").forEach(m=>{m.hidden=mp===0;
+      const dd=m.querySelector("[data-mp]");dd.textContent="";if(unl)dd.textContent="∞";else for(let i=0;i<mp;i++){const e=document.createElement("i");if(i<ps)e.className="used";dd.append(e)}
+});
     /* il Passo sta dentro i due cartellini, uno per lato */
     $("#bPass").hidden=true;
     const pl=mp-ps;
-    document.querySelectorAll("[data-cpass]").forEach(b=>{b.hidden=gap||buzz;b.disabled=pl<=0;b.textContent=pl<=0?"Passo esauriti":"Passo ("+pl+")"});
-  }else document.querySelectorAll("[data-cpass]").forEach(b=>b.hidden=true);
-  $("#hint").textContent=gap?"Preparatevi: il tempo è fermo, la parola compare tra poco.":role==="g"?"Premi PRENOTA quando hai la risposta: il tempo si ferma.":role==="v"?"Stai guardando la partita.":buzz?"Ha risposto? Segnate se è giusta o sbagliata.":"Una parola a testa, alternandovi. Giusta e Sbagliata si attivano quando l'indovino prenota.";
+    document.querySelectorAll("[data-cpass]").forEach(b=>{b.hidden=gap||buzz||mp===0;b.disabled=pl<=0;b.textContent=pl<=0?"Passo esauriti":"Passo"});
+  }else{document.querySelectorAll("[data-cpass]").forEach(b=>b.hidden=true);document.querySelectorAll("[data-meta],[data-side]").forEach(m=>m.hidden=true)}
+  $("#hint").textContent=gap?"Preparatevi: il tempo è fermo, la parola compare tra poco.":role==="g"?"":role==="v"?"Stai guardando la partita.":buzz?"Ha risposto? Segnate se è giusta o sbagliata.":"";
   renderTime()}
 function renderTime(){
   if(!G||G.ph==="lobby"||$("#game").hidden)return;
   const ms=remaining(),dur=(G.dur||60)*1000,sec=Math.ceil(ms/1000);
-  $("#time").textContent=sec;if(local)$("#hTime").textContent=sec;
+  $("#time").textContent=sec;if(local){const off=(326.7*(1-Math.min(1,ms/dur))).toFixed(1);document.querySelectorAll("[data-mt]").forEach(e=>{e.textContent=sec;e.parentNode.classList.toggle("low",sec<=10&&G.ph!=="end")});document.querySelectorAll("[data-marc]").forEach(a=>a.setAttribute("stroke-dashoffset",off))}
   $("#arc").setAttribute("stroke-dashoffset",(326.7*(1-Math.min(1,ms/dur))).toFixed(1));
   $("#clock").classList.toggle("low",sec<=10&&G.ph!=="end");
   $("#clock").classList.toggle("paused",G.ph==="buzz");
@@ -722,6 +867,20 @@ document.querySelectorAll("[data-cpass]").forEach(b=>b.onclick=e=>{e.stopPropaga
 $("#bResume").onclick=()=>send("resume");
 $("#bSkip").onclick=()=>send("skip");
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&G&&G.ph!=="lobby")keepAwake()});
+
+/* ---------- patch notes ---------- */
+const nDlg=$("#notesDlg");
+function openNotes(){const box=$("#notesList");box.textContent="";
+  PATCH_NOTES.forEach((r,i)=>{const s=document.createElement("section");s.className="rel"+(i===0?" cur":"");
+    const h=document.createElement("div");h.className="rel-h";const b=document.createElement("b");b.textContent="ver "+r.v;
+    const d=document.createElement("span");d.textContent=(i===0?"Attuale · ":"")+r.d;h.append(b,d);
+    const ul=document.createElement("ul");for(const t of r.n){const li=document.createElement("li");const m=/^New:\s*/.exec(t);
+      if(m){const c=document.createElement("span");c.className="chip new";c.textContent="New";li.append(c,t.slice(m[0].length))}else li.textContent=t;ul.append(li)}
+    s.append(h,ul);box.append(s)});
+  if(nDlg.showModal){try{nDlg.showModal()}catch(e){nDlg.setAttribute("open","")}}else nDlg.setAttribute("open","")}
+function closeNotes(){if(nDlg.close)nDlg.close();else nDlg.removeAttribute("open")}
+$("#btnVer").onclick=openNotes;$("#notesClose").onclick=closeNotes;
+nDlg.addEventListener("click",e=>{if(e.target===nDlg)closeNotes()});
 
 /* ---------- condividi ---------- */
 const dlg=$("#shareDlg");
