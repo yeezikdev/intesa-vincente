@@ -118,7 +118,7 @@ body.local .wrap{min-height:100vh;min-height:100dvh}
 body.local #game{flex:1 1 auto}
 body.local #game .half,body.local #game .card{height:auto;flex:1 1 0;min-height:120px}
 /* tempo, punti e passo a sinistra della parola, con la stessa grafica del pannello centrale */
-body.local #game .card,body.local #game .half{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;justify-items:stretch;column-gap:10px;padding:20px 12px}
+body.local #game .card,body.local #game .half{display:grid;grid-template-columns:86px minmax(0,1fr) 86px;align-items:center;justify-items:stretch;column-gap:10px;padding:20px 12px}
 .cside{display:flex;flex-direction:column;align-items:center;gap:10px;padding-left:10px;border-left:2px solid color-mix(in srgb,currentColor 15%,transparent)}
 .cside[hidden]{display:none!important}
 .cside .cardPass{position:static;font-size:13px;padding:8px 12px;min-height:52px;border-radius:14px}
@@ -152,7 +152,9 @@ body.local .pad.final #bNo{order:3}
 .half,.card{position:relative}
 .startTag{display:inline-block;margin:0 auto 8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--gold);color:var(--bg);font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 2px 0 color-mix(in srgb,var(--gold) 55%,#000)}
 /* un solo dispositivo: lo spazio resta riservato, così la parola non salta quando il turno cambia */
-body.local .startTag[hidden]{display:inline-block!important;visibility:hidden}
+/* un solo dispositivo: "Inizi tu!" in alto al centro del cartellino bianco, la parola resta ferma al centro */
+body.local #game .card>div:not(.cmeta):not(.cside),body.local #game .half>.hw{position:relative;align-self:stretch;display:flex;flex-direction:column;justify-content:center}
+body.local #game .startTag{position:absolute;top:22px;left:50%;transform:translateX(-50%);margin:0;z-index:1}
 .startTag.other{background:transparent;color:inherit;opacity:.75;box-shadow:inset 0 0 0 2px currentColor}
 .cardPass{position:absolute;right:10px;bottom:10px;background:var(--blue);color:var(--bg);font-size:15px;font-weight:800;padding:8px 14px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em;box-shadow:0 3px 0 color-mix(in srgb,var(--blue) 55%,#000)}
 .cardPass:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--blue) 55%,#000)}
@@ -293,8 +295,10 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 @keyframes yzShine{from{background-position:100% 0}to{background-position:-150% 0}}
 .verhint{display:block;margin-top:6px;font-size:12px;color:var(--gold);min-height:1.2em}
 dialog#secretDlg{border:1px solid #c77dff;border-radius:18px;background:radial-gradient(120% 90% at 50% 0%,#3a1d6e,var(--bg) 70%);color:var(--fg);padding:24px 20px;width:min(380px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;text-align:center}
+dialog#secretDlg .secTop{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+dialog#secretDlg .secTop .ghost{padding:8px 12px;font-size:14px;flex:none}
 dialog#secretDlg::backdrop{background:rgba(8,6,30,.85)}
-.yzlogo{font-family:var(--display);font-weight:900;font-size:clamp(56px,18vw,84px);line-height:.9;letter-spacing:.06em;background:linear-gradient(100deg,#e0a21f 0%,var(--gold) 30%,#fff3c4 45%,var(--gold) 60%,#e0a21f 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:yzShine 2.4s linear infinite}
+.yzlogo{white-space:nowrap;text-transform:uppercase;font-family:var(--display);font-weight:900;font-size:clamp(56px,18vw,84px);line-height:.9;letter-spacing:.06em;background:linear-gradient(100deg,#e0a21f 0%,var(--gold) 30%,#fff3c4 45%,var(--gold) 60%,#e0a21f 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:yzShine 2.4s linear infinite}
 .yzeq{display:flex;gap:5px;justify-content:center;align-items:flex-end;height:36px}
 .yzeq i{display:block;width:7px;border-radius:3px;background:#c77dff;animation:yzEq .5s ease-in-out infinite alternate}
 .yzeq i:nth-child(2){animation-delay:-.2s;background:var(--blue)}.yzeq i:nth-child(3){animation-delay:-.35s;background:var(--green)}.yzeq i:nth-child(4){animation-delay:-.1s;background:var(--gold)}.yzeq i:nth-child(5){animation-delay:-.4s;background:var(--red)}
@@ -541,13 +545,12 @@ dialog#pinDlg::backdrop{background:rgba(8,6,30,.85)}
 </dialog>
 <dialog id="secretDlg" aria-labelledby="secretTitle">
   <div class="dlg">
-    <div class="yzeq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="secTop"><button class="ghost" id="secretClose">Chiudi</button></div>
     <span class="label">Hai trovato la stanza segreta</span>
     <div class="yzlogo" id="secretTitle">YEEZIK</div>
     <p class="lede" style="margin:0 auto">Benvenuto nel backstage di Yeezik. Quanti trofei riuscirai a prendere?</p>
     <div class="trbox" id="trophies"></div>
     <p class="note">Made by Yeezik. Grazie per aver giocato fin qui.</p>
-    <button id="secretClose">Torna al gioco</button>
   </div>
 </dialog>
 <canvas id="confetti" popover="manual" hidden aria-hidden="true"></canvas>
@@ -1059,10 +1062,18 @@ function onVerTap(){audio();verTaps++;clearTimeout(verTimer);const h=$("#verHint
   if(verTaps>=3)h.textContent="Ancora "+(7-verTaps)+(7-verTaps===1?" tocco…":" tocchi…");
   verTimer=setTimeout(()=>{if(verTaps===1)openNotes();verTaps=0;h.textContent=""},verTaps===1?350:1500)}
 const sDlg=$("#secretDlg");
-function openSecret(){renderTrophies();
-  if(sDlg.showModal){try{sDlg.showModal()}catch(e){sDlg.setAttribute("open","")}}else sDlg.setAttribute("open","");sfx.jingle();vibrate([30,40,30,40,120]);found("credits",1700)}
+/* nella stanza segreta compare il nome del giocatore; Yeezik solo con il PIN già inserito */
+function secretName(){let n=($("#nickIn").value||nick||store.get("iv-nick")||"").trim().slice(0,18);
+  if(!n||(isYz(n)&&store.get("iv-yz-ok")!==YZ_PIN))n="Yeezik";return n}
+function fitLogo(){const el=$("#secretTitle");el.style.fontSize="";let f=parseFloat(getComputedStyle(el).fontSize),max=el.parentNode.clientWidth;
+  while(el.scrollWidth>max&&f>24){f-=2;el.style.fontSize=f+"px"}}
+function openSecret(){secretAt=Date.now();$("#secretTitle").textContent=secretName();renderTrophies();
+  if(sDlg.showModal){try{sDlg.showModal()}catch(e){sDlg.setAttribute("open","")}}else sDlg.setAttribute("open","");requestAnimationFrame(fitLogo);sfx.jingle();vibrate([30,40,30,40,120]);found("credits",1700)}
 function closeSecret(){if(sDlg.close)sDlg.close();else sDlg.removeAttribute("open")}
-$("#secretClose").onclick=closeSecret;sDlg.addEventListener("click",e=>{if(e.target===sDlg)closeSecret()});
+/* i tocchi di troppo subito dopo il 7° non devono chiudere la stanza */
+let secretAt=0;
+function closeSecretSafe(){if(Date.now()-secretAt>800)closeSecret()}
+$("#secretClose").onclick=closeSecretSafe;sDlg.addEventListener("click",e=>{if(e.target===sDlg)closeSecretSafe()});
 /* 2) tieni premuto il titolo per 2 secondi */
 (()=>{const t=$("#home h1");let tm=null,x0=0,y0=0;
   const stop=()=>{clearTimeout(tm);tm=null;t.classList.remove("yz-hold")};
