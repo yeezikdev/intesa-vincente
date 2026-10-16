@@ -143,7 +143,7 @@ body.local #game .card .w,body.local #game .half .w{font-size:clamp(30px,9vw,56p
 .mstat .dots i{width:10px;height:10px}
 .mstat .dots i.used{box-shadow:inset 0 0 0 2px color-mix(in srgb,currentColor 30%,transparent)}
 body.local .pad .buzz,body.local .pad #bOk,body.local .pad #bNo{min-height:104px}
-body.local .pad.final{grid-template-columns:1fr 1fr 1fr}
+body.local .pad.final{grid-template-columns:repeat(3,minmax(0,1fr))}
 body.local .pad.final>button{grid-column:auto;min-height:104px;font-size:clamp(14px,4.2vw,20px);letter-spacing:.01em;padding:10px 4px;line-height:1.1;overflow-wrap:normal;word-break:normal}
 body.local .pad.final #bOk{order:1}
 body.local .pad.final #bSkip{order:2}
@@ -172,6 +172,24 @@ body.local .stat .num{font-size:36px}
 body.local .banner{padding:8px 12px;font-size:16px}
 body.local .pad{gap:8px}
 body.local .big{font-size:24px;padding:12px}
+/* un solo dispositivo: "Prenota" due volte sulla stessa riga, a sinistra capovolto per chi sta dall'altra parte */
+.bzT{display:none}
+body.local #bBuzz{display:grid;grid-template-columns:1fr 1fr;align-items:center;justify-items:center;gap:8px;padding-left:12px;padding-right:12px}
+body.local #bBuzz span{font-size:clamp(22px,7.6vw,32px);white-space:nowrap}
+body.local #bBuzz[hidden]{display:none}
+body.local #bBuzz{position:relative}
+body.local #bBuzz::after{content:"";position:absolute;top:22%;bottom:22%;left:50%;width:1px;transform:translateX(-50%);background:currentColor;opacity:.35;pointer-events:none}
+body.local #bBuzz .bzT{display:inline-block;transform:rotate(180deg)}
+/* Giusta e Sbagliata: bottoni stretti, quindi le due scritte una sopra l'altra (in alto capovolta) */
+body.local .pad:not(.final){grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+body.local #bOk,body.local #bNo,body.local #bSkip{container-type:inline-size;display:grid;grid-template-rows:1fr 1fr;align-items:center;justify-items:center;gap:14px;padding:10px 8px}
+body.local #bOk[hidden],body.local #bNo[hidden],body.local #bSkip[hidden]{display:none}
+body.local #bOk,body.local #bNo,body.local #bSkip{position:relative}
+body.local #bOk::after,body.local #bNo::after,body.local #bSkip::after{content:"";position:absolute;left:18%;right:18%;top:50%;height:1px;background:currentColor;opacity:.35;pointer-events:none}
+body.local #bOk .bzT,body.local #bNo .bzT,body.local #bSkip .bzT{display:block;transform:rotate(180deg)}
+body.local #bOk span,body.local #bNo span{font-size:clamp(11px,16cqi,24px);white-space:nowrap}
+body.local .pad.final #bOk span,body.local .pad.final #bNo span{font-size:clamp(10px,16cqi,18px)}
+body.local #bSkip span{font-size:clamp(9px,12.5cqi,16px);white-space:nowrap}
 body.local .buzz{font-size:32px;padding:16px;box-shadow:0 6px 0 color-mix(in srgb,var(--red) 55%,#000)}
 .card.hide .w{font-size:22px;font-family:var(--body);font-weight:600;text-transform:none}
 .banner{border-radius:12px;padding:12px 14px;text-align:center;font-weight:800;background:var(--red);color:#fff;font-size:18px;animation:pulse 1s infinite alternate}
@@ -496,11 +514,11 @@ dialog#pinDlg::backdrop{background:rgba(8,6,30,.85)}
       <div class="card" id="card"><div class="cmeta" data-meta hidden><div class="mclock"><svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" data-marc cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg><b data-mt>60</b></div><div class="mstat"><span class="label">Punti</span><b data-ms>0</b></div></div><div><span class="startTag" id="cStart" hidden></span><div class="sub" id="cardSub" hidden>Prossima parola tra</div><div class="w" id="word">—</div></div><div class="cside" data-side hidden><div class="mstat mpw"><span class="label">Passo</span><div class="dots" data-mp></div></div><button class="cardPass" id="cPass" data-cpass hidden>Passo</button></div></div>
       <p class="hint" id="hint"></p>
       <div class="pad">
-        <button id="bBuzz" class="buzz wide">Prenota</button>
-        <button id="bOk" class="ok big">Giusta</button>
-        <button id="bNo" class="no big">Sbagliata</button>
+        <button id="bBuzz" class="buzz wide" aria-label="Prenota"><span class="bzT" aria-hidden="true">Prenota</span><span class="bzB" aria-hidden="true">Prenota</span></button>
+        <button id="bOk" class="ok big" aria-label="Giusta"><span class="bzT" aria-hidden="true">Giusta</span><span class="bzB" aria-hidden="true">Giusta</span></button>
+        <button id="bNo" class="no big" aria-label="Sbagliata"><span class="bzT" aria-hidden="true">Sbagliata</span><span class="bzB" aria-hidden="true">Sbagliata</span></button>
         <button id="bPass" class="pass big wide">Passo</button>
-        <button id="bSkip" class="skip big wide" hidden>Non rispondo</button>
+        <button id="bSkip" class="skip big wide" aria-label="Non rispondo" hidden><span class="bzT" aria-hidden="true">Non rispondo</span><span class="bzB" aria-hidden="true">Non rispondo</span></button>
         <button id="bResume" class="ghost wide" hidden>Annulla prenotazione</button>
       </div>
     </div>
