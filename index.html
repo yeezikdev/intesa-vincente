@@ -85,6 +85,46 @@ button.pass{background:var(--blue)}
 .card.gap{background:var(--panel);color:var(--gold);box-shadow:0 10px 0 var(--line)}
 .card.gap .w{font-size:96px}
 .card .sub{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+/* un solo dispositivo: metà schermo capovolta per chi sta di fronte */
+.half{transform:rotate(180deg);background:var(--fg);color:var(--bg);border-radius:16px;padding:16px;min-height:40vh;min-height:40dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
+.half .w{font-family:var(--display);font-weight:900;font-size:clamp(46px,14vw,84px);line-height:1;text-transform:uppercase;letter-spacing:.02em;overflow-wrap:anywhere}
+.half .meta{display:flex;gap:18px;align-items:baseline;font-family:var(--display);font-weight:900;font-size:28px;font-variant-numeric:tabular-nums}
+.half .meta small{font-family:var(--body);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-left:4px}
+.half .sub{color:inherit;opacity:.7}
+.half.gap,.half.end{background:var(--panel);color:var(--gold);box-shadow:inset 0 0 0 1px var(--line)}
+.half.buzz{background:var(--red);color:#fff}
+.half.end .w{font-size:clamp(40px,12vw,64px)}
+.split-line{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.split-line::before,.split-line::after{content:"";flex:1;border-top:2px dashed var(--line)}
+/* un solo dispositivo: parola capovolta in alto, comandi al centro, parola dritta in basso */
+body.local .wrap{padding-block:10px 14px;gap:10px}
+body.local #game{gap:10px}
+body.local #playArea{display:contents}
+body.local #game>.top{order:0}
+body.local #half{order:1}
+body.local .hud{order:2}
+body.local #buzzBanner{order:3}
+body.local .pad{order:4}
+body.local #card{order:5}
+body.local #endArea{order:6}
+body.local #hostGone{order:7}
+body.local #hint,body.local #splitLine,body.local #buzzBanner,.half .meta{display:none!important}
+body.local .card.buzz{background:var(--red);color:#fff;box-shadow:0 10px 0 color-mix(in srgb,var(--red) 55%,#000)}
+body.local .card.buzz .sub,body.local .card.gap .sub{color:inherit;opacity:.75}
+body.local #bResume{font-size:20px;padding:16px;min-height:62px;order:-1}
+.half .sub{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+body.local .half,body.local .card{height:clamp(120px,22dvh,240px);min-height:0;padding:16px;border-radius:16px;box-shadow:0 10px 0 var(--gold)}
+body.local .half .w,body.local .card .w{font-size:clamp(38px,11vw,64px)}
+body.local .half.gap,body.local .card.gap,body.local .half.end{box-shadow:0 10px 0 var(--line)}
+body.local .half.gap .w,body.local .card.gap .w{font-size:clamp(56px,16vw,88px)}
+body.local .half.buzz{box-shadow:0 10px 0 color-mix(in srgb,var(--red) 55%,#000)}
+body.local .clock{width:96px;height:96px}
+body.local .clock .t{font-size:40px}
+body.local .stat .num{font-size:36px}
+body.local .banner{padding:8px 12px;font-size:16px}
+body.local .pad{gap:8px}
+body.local .big{font-size:24px;padding:12px}
+body.local .buzz{font-size:32px;padding:16px;box-shadow:0 6px 0 color-mix(in srgb,var(--red) 55%,#000)}
 .card.hide .w{font-size:22px;font-family:var(--body);font-weight:600;text-transform:none}
 .banner{border-radius:12px;padding:12px 14px;text-align:center;font-weight:800;background:var(--red);color:#fff;font-size:18px;animation:pulse 1s infinite alternate}
 @keyframes pulse{to{filter:brightness(1.25)}}
@@ -185,6 +225,12 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 
   <!-- GIOCO -->
   <section id="game" class="screen" hidden>
+    <div class="half" id="half" hidden aria-label="Lato di chi sta di fronte">
+      <div class="meta"><span><span id="hTime">75</span><small>sec</small></span><span><span id="hScore">0</span><small>punti</small></span></div>
+      <div class="sub" id="hSub" hidden>Prossima parola tra</div>
+      <div class="w" id="hWord">—</div>
+    </div>
+    <div class="split-line" id="splitLine" hidden>il tuo lato</div>
     <div class="top"><span class="label" id="roleTag"></span><span class="net" data-net><i></i><span>Collegato</span></span><button class="ghost" data-exit>Esci</button></div>
     <div class="hud">
       <div class="stat"><span class="label">Punti</span><span class="num" id="score">0</span></div>
@@ -309,7 +355,7 @@ document.querySelectorAll("[data-exit]").forEach(b=>b.onclick=exitGame);
 function exitGame(){
   if(cli){try{cli.publish(base+"p/"+cid,"",{retain:true,qos:1});if(isHost)cli.publish(base+"g","",{retain:true,qos:1})}catch(e){}
     const c=cli;cli=null;setTimeout(()=>{try{c.end(true)}catch(e){}},400)}
-  clearInterval(pushTimer);G=null;isHost=false;local=false;peerMap={};seenAct={};sig=null;
+  clearInterval(pushTimer);document.body.classList.remove("local");G=null;isHost=false;local=false;peerMap={};seenAct={};sig=null;
   $("#waitNote").textContent="In attesa che chi ha creato la partita la avvii.";
   show("home");if(wake){wake.release().catch(()=>{});wake=null}}
 window.addEventListener("pagehide",()=>{if(cli){try{cli.publish(base+"p/"+cid,"",{retain:true,qos:0})}catch(e){}}});
@@ -450,6 +496,15 @@ function sfxCheck(){const s={ph:G.ph,d:G.done||0,rnd:G.rnd||0};
   else if(sig&&s.ph==="play"&&sig.ph!=="play")sfx.start();
   if(sig&&sig.rnd===s.rnd&&s.ph==="play"&&sig.ph==="gap")sfx.start();
   sig=s}
+function setWord(t){$("#word").textContent=t;if(local&&G&&G.ph!=="end")$("#hWord").textContent=t}
+function renderHalf(){
+  const on=local&&G&&G.ph!=="lobby";$("#half").hidden=!on;$("#splitLine").hidden=true;document.body.classList.toggle("local",!!on);
+  if(!on)return;const h=$("#half"),ph=G.ph;
+  h.classList.toggle("gap",ph==="gap");h.classList.toggle("buzz",ph==="buzz");h.classList.toggle("end",ph==="end");
+  $("#hScore").textContent=G.score||0;
+  $("#hSub").hidden=ph!=="gap";$("#hSub").textContent="Prossima parola tra";
+  if(ph==="end"){$("#hSub").hidden=false;$("#hSub").textContent="Tempo scaduto";$("#hWord").textContent=(G.score||0)+" punti"}
+  else if(ph==="buzz"){$("#hSub").hidden=false;$("#hSub").textContent=G.final?"Tempo scaduto · ultima risposta":"Prenotato";$("#hWord").textContent=String(G.word||"")}}
 function renderGame(){
   const role=local?"all":(myRole||"v");
   const sees=role!=="g",plays=role!=="v",judge=role==="s1"||role==="s2"||role==="all",guess=role==="g"||role==="all";
@@ -458,6 +513,7 @@ function renderGame(){
   $("#score").textContent=G.score||0;
   const mp=G.maxPass||3,ps=G.pass||0;
   const d=$("#dots");d.textContent="";for(let i=0;i<mp;i++){const e=document.createElement("i");if(i<ps)e.className="used";d.append(e)}
+  renderHalf();
   const end=G.ph==="end";$("#playArea").hidden=end;$("#endArea").hidden=!end;
   if(end){
     $("#finalScore").textContent=G.score||0;
@@ -466,7 +522,7 @@ function renderGame(){
     $("#endHost").hidden=!isHost;$("#endWait").hidden=isHost;renderTime();return}
   const buzz=G.ph==="buzz",gap=G.ph==="gap";
   $("#card").classList.toggle("hide",!sees&&!gap);$("#card").classList.toggle("gap",gap);$("#cardSub").hidden=!gap;
-  $("#word").textContent=gap?String(Math.max(1,Math.ceil((gapDeadline-Date.now())/1000))):sees?String(G.word||""):"Ascolta i suggeritori";
+  setWord(gap?String(Math.max(1,Math.ceil((gapDeadline-Date.now())/1000))):sees?String(G.word||""):"Ascolta i suggeritori");
   $("#buzzBanner").hidden=!buzz;
   const fin=buzz&&G.final;
   $("#buzzBanner").textContent=fin?(role==="g"?"Tempo scaduto! Ultima risposta.":"Tempo scaduto! Giusta, sbagliata o non risponde?"):role==="g"?"Rispondi ora! I suggeritori giudicano.":"PRENOTATO! Giusta o sbagliata?";
@@ -477,18 +533,26 @@ function renderGame(){
   $("#bPass").hidden=!plays;$("#bPass").disabled=ps>=mp||gap||fin;
   $("#bPass").textContent=ps>=mp?"Passo esauriti":"Passo ("+(mp-ps)+")";
   $("#bResume").hidden=!(buzz&&judge)||fin;
+  if(local){
+    /* un solo dispositivo: stessa altezza sempre, i bottoni si scambiano di posto */
+    $("#card").classList.toggle("buzz",buzz);
+    $("#cardSub").hidden=!(gap||buzz);
+    $("#cardSub").textContent=gap?"Prossima parola tra":fin?"Tempo scaduto · ultima risposta":"Prenotato";
+    $("#bBuzz").hidden=buzz;
+    $("#bPass").hidden=fin;
+  }
   $("#hint").textContent=gap?"Preparatevi: il tempo è fermo, la parola compare tra poco.":role==="g"?"Premi PRENOTA quando hai la risposta: il tempo si ferma.":role==="v"?"Stai guardando la partita.":buzz?"Ha risposto? Segnate se è giusta o sbagliata.":"Una parola a testa, alternandovi. Giusta e Sbagliata si attivano quando l'indovino prenota.";
   renderTime()}
 function renderTime(){
   if(!G||G.ph==="lobby"||$("#game").hidden)return;
   const ms=remaining(),dur=(G.dur||75)*1000,sec=Math.ceil(ms/1000);
-  $("#time").textContent=sec;
+  $("#time").textContent=sec;if(local)$("#hTime").textContent=sec;
   $("#arc").setAttribute("stroke-dashoffset",(326.7*(1-Math.min(1,ms/dur))).toFixed(1));
   $("#clock").classList.toggle("low",sec<=10&&G.ph!=="end");
   $("#clock").classList.toggle("paused",G.ph==="buzz");
   if(G.run&&sec<=5&&sec>0&&sec!==lastTickSec){lastTickSec=sec;sfx.tick()}
   if(G.ph==="gap"){const gs=Math.max(1,Math.ceil((gapDeadline-Date.now())/1000));
-    if($("#word").textContent!==String(gs)){$("#word").textContent=gs;sfx.tick()}
+    if($("#word").textContent!==String(gs)){setWord(String(gs));sfx.tick()}
     if(isHost&&Date.now()>=gapDeadline){resume();push()}}
   if(!G.run)lastTickSec=null;
   if(isHost&&G.run&&G.ph==="play"&&ms<=0)timeUp()}
