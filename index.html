@@ -142,6 +142,9 @@ button.skip{background:var(--line);color:var(--fg)}
 .hist li.skip{background:var(--bg);color:var(--muted);text-decoration:line-through}
 .hist li.pass{background:color-mix(in srgb,var(--blue) 20%,var(--bg));color:var(--blue)}
 .final{font-family:var(--display);font-weight:900;font-size:110px;line-height:.9;color:var(--gold);text-align:center;font-variant-numeric:tabular-nums}
+.wrap{min-height:100%}
+.top>h1,.top>h2{min-width:0;flex:1 1 auto}
+.screen,.wrap>*{min-width:0}
 .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .top .ghost{padding:8px 12px;font-size:14px}
 .top .row>*{flex:none}
@@ -204,16 +207,16 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
     <div class="box" id="hostBox" hidden>
       <label class="label" for="durSel">Tempo a disposizione</label>
       <select id="durSel">
-        <option value="60">60 secondi</option>
-        <option value="75" selected>75 secondi</option>
+        <option value="60" selected>60 secondi</option>
+        <option value="75">75 secondi</option>
         <option value="90">90 secondi</option>
         <option value="120">120 secondi</option>
       </select>
       <label class="label" for="gapSel">Pausa tra una parola e l'altra</label>
       <select id="gapSel">
         <option value="0">Nessuna pausa</option>
-        <option value="3">3 secondi</option>
-        <option value="5" selected>5 secondi</option>
+        <option value="3" selected>3 secondi</option>
+        <option value="5">5 secondi</option>
         <option value="7">7 secondi</option>
         <option value="10">10 secondi</option>
       </select>
@@ -226,7 +229,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
   <!-- GIOCO -->
   <section id="game" class="screen" hidden>
     <div class="half" id="half" hidden aria-label="Lato di chi sta di fronte">
-      <div class="meta"><span><span id="hTime">75</span><small>sec</small></span><span><span id="hScore">0</span><small>punti</small></span></div>
+      <div class="meta"><span><span id="hTime">60</span><small>sec</small></span><span><span id="hScore">0</span><small>punti</small></span></div>
       <div class="sub" id="hSub" hidden>Prossima parola tra</div>
       <div class="w" id="hWord">—</div>
     </div>
@@ -236,7 +239,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
       <div class="stat"><span class="label">Punti</span><span class="num" id="score">0</span></div>
       <div class="clock" id="clock">
         <svg viewBox="0 0 120 120"><circle class="track" cx="60" cy="60" r="52"/><circle class="arc" id="arc" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="0"/></svg>
-        <div class="t" id="time">75</div>
+        <div class="t" id="time">60</div>
       </div>
       <div class="stat"><span class="label">Passo</span><div class="dots" id="dots"></div></div>
     </div>
@@ -275,7 +278,7 @@ dialog#shareDlg::backdrop{background:rgba(8,6,30,.7)}
 <dialog id="shareDlg" aria-labelledby="shareTitle">
   <div class="dlg">
     <div class="top"><h2 id="shareTitle">Invita a giocare</h2><button class="ghost" id="shareClose">Chiudi</button></div>
-    <p class="note">Fai inquadrare il QR code, oppure copia il link e mandalo in un messaggio.</p>
+    <p class="note">Fai inquadrare il QR code, oppure copia il link e mandalo ad un tuo amico per giocare.</p>
     <div class="qr" id="qrBox"><p>Caricamento del QR code…</p></div>
     <div class="url" id="shareUrl"></div>
     <button id="btnCopy">Copia link</button>
@@ -332,7 +335,7 @@ function busy(b){$("#btnCreate").disabled=b;$("#btnJoin").disabled=b}
 $("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
   code=String(Math.floor(Math.random()*9000)+1000);
   isHost=true;local=false;myRole=null;
-  wantV=false;requested=null;G={ph:"lobby",code,dur:75,gap:5,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};
+  wantV=false;requested=null;G={ph:"lobby",code,dur:60,gap:3,roles:{s1:null,s2:null,g:null},rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");push();enterLobby()};
@@ -340,7 +343,7 @@ $("#btnCreate").onclick=async()=>{if(!getNick())return;audio();
 $("#btnJoin").onclick=async()=>{if(!getNick())return;audio();
   code=$("#codeIn").value.replace(/\D/g,"");
   if(!/^\d{4}$/.test(code)){note("Il codice è di 4 cifre.");return}
-  isHost=false;local=false;myRole=null;wantV=false;requested=null;hostSeen=false;G={ph:"lobby",code,dur:75,roles:{s1:null,s2:null,g:null}};
+  isHost=false;local=false;myRole=null;wantV=false;requested=null;hostSeen=false;G={ph:"lobby",code,dur:60,roles:{s1:null,s2:null,g:null}};
   busy(true);note("Collegamento in corso…");
   try{await connect()}catch(e){busy(false);note("Non riesco a collegarmi. Controlla la connessione internet e riprova.");return}
   busy(false);note("");enterLobby();
@@ -349,7 +352,7 @@ $("#codeIn").addEventListener("input",()=>{const el=$("#codeIn"),v=el.value.repl
 $("#codeIn").addEventListener("keydown",e=>{if(e.key==="Enter")$("#btnJoin").click()});
 
 $("#btnLocal").onclick=()=>{if(!getNick())return;audio();local=true;isHost=true;myRole="all";code="";
-  G={ph:"lobby",code:"",dur:75,gap:5,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:75000,run:false,word:"",hist:[],done:0};enterLobby()};
+  G={ph:"lobby",code:"",dur:60,gap:3,rnd:0,wi:0,score:0,pass:0,maxPass:3,left:60000,run:false,word:"",hist:[],done:0};enterLobby()};
 
 document.querySelectorAll("[data-exit]").forEach(b=>b.onclick=exitGame);
 function exitGame(){
@@ -441,7 +444,7 @@ function apply(t,wi){
   else return;
   push()}
 function start(){
-  if(!isHost)return;const dur=+$("#durSel").value||75,gap=+$("#gapSel").value||0;
+  if(!isHost)return;const dur=+$("#durSel").value||60,gap=+$("#gapSel").value||0;
   deck=shuffle(WORDS);G={ph:"play",final:false,code:G.code,roles:G.roles||{s1:null,s2:null,g:null},dur,gap,gapLeft:0,rnd:(G.rnd||0)+1,wi:0,score:0,pass:0,maxPass:3,left:dur*1000,run:true,word:"",hist:[],done:0};
   nextWord();if(gap>0)startGap();else resume();keepAwake();push()}
 /* tempo scaduto: l'ultima parola si prenota da sola */
@@ -449,7 +452,7 @@ function timeUp(){G.run=false;G.left=0;G.ph="buzz";G.final=true;push()}
 function finish(){G.run=false;G.left=0;G.ph="end";G.final=false;
   const b=+store.get("iv-best")||0;if(G.score>b)store.set("iv-best",G.score);push()}
 $("#btnStart").onclick=()=>{audio();start()};
-$("#durSel").onchange=$("#gapSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||75;G.gap=+$("#gapSel").value||0;push()}};
+$("#durSel").onchange=$("#gapSel").onchange=()=>{if(isHost&&G&&G.ph==="lobby"){G.dur=+$("#durSel").value||60;G.gap=+$("#gapSel").value||0;push()}};
 $("#bAgain").onclick=()=>{audio();start()};
 $("#bLobby").onclick=()=>{if(!isHost)return;if(local){G=Object.assign({},G,{ph:"lobby",run:false});enterLobby();return}G=Object.assign({},G,{ph:"lobby",run:false});for(const k of ["s1","s2","g"]){const h=G.roles&&G.roles[k];if(h&&h.id!==cid&&!peerMap[h.id])G.roles[k]=null}push()};
 
@@ -457,7 +460,7 @@ $("#bLobby").onclick=()=>{if(!isHost)return;if(local){G=Object.assign({},G,{ph:"
 function enterLobby(){$("#codeShow").textContent=code;
   ["#codeBox","#rolesBox","#peersBox"].forEach(id=>$(id).hidden=local);
   $("#lobby h2").textContent=local?"Impostazioni":"Sala d'attesa";
-  if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;$("#durSel").value=String(G.dur||75);$("#gapSel").value=String(G.gap??5)}
+  if(local){$("#hostBox").hidden=false;$("#waitNote").hidden=true;$("#durSel").value=String(G.dur||60);$("#gapSel").value=String(G.gap??3)}
   show("lobby");renderLobby()}
 let lobbyKey="";
 function renderLobby(){
@@ -482,7 +485,7 @@ function renderLobby(){
   const have=new Set(list.map(p=>p.role));const miss=["s1","s2","g"].filter(r=>!have.has(r)).map(r=>ROLES[r][0]);
   $("#roleWarn").hidden=!miss.length;$("#roleWarn").textContent="Ruoli ancora liberi: "+miss.join(", ")+".";
   $("#hostBox").hidden=!isHost;$("#waitNote").hidden=isHost;
-  if(isHost){$("#durSel").value=String(G.dur||75);$("#gapSel").value=String(G.gap??5)}}
+  if(isHost){$("#durSel").value=String(G.dur||60);$("#gapSel").value=String(G.gap??3)}}
 
 /* ---------- gioco ---------- */
 function route(){
@@ -545,7 +548,7 @@ function renderGame(){
   renderTime()}
 function renderTime(){
   if(!G||G.ph==="lobby"||$("#game").hidden)return;
-  const ms=remaining(),dur=(G.dur||75)*1000,sec=Math.ceil(ms/1000);
+  const ms=remaining(),dur=(G.dur||60)*1000,sec=Math.ceil(ms/1000);
   $("#time").textContent=sec;if(local)$("#hTime").textContent=sec;
   $("#arc").setAttribute("stroke-dashoffset",(326.7*(1-Math.min(1,ms/dur))).toFixed(1));
   $("#clock").classList.toggle("low",sec<=10&&G.ph!=="end");
